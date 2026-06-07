@@ -146,6 +146,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .btn-map { padding: 14px 20px; border-radius: 12px; border: 1.5px solid rgba(0,0,0,0.15); background: white; font-size: 15px; font-family: 'DM Sans', sans-serif; cursor: pointer; color: var(--ink); text-decoration: none; display: flex; align-items: center; }
 .empty-state { text-align: center; padding: 48px 24px; color: var(--ink-light); }
 .empty-state svg { margin: 0 auto 12px; display: block; opacity: 0.3; }
+.tree-card.gone { border-color: #c0392b; background: #fff5f5; }
+.tree-card.gone .tree-name { color: #7a1a1a; }
+.note-banner { font-size: 12px; padding: 6px 10px; border-radius: 8px; margin-top: 6px; line-height: 1.4; }
+.note-banner.warning { background: #fff3cd; color: #7a5c00; }
+.note-banner.gone { background: #fde8e8; color: #7a1a1a; }
 .empty-state p { font-size: 15px; line-height: 1.6; }
 .sync-panel { padding: 20px; }
 .sync-panel h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 8px; }
@@ -220,7 +225,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
   <div id="leaflet-map" style="width:100%;height:100%;"></div>
   <div id="map-legend" style="position:absolute;bottom:16px;left:16px;z-index:1000;background:white;border-radius:10px;padding:10px 14px;font-size:12px;font-family:'DM Sans',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><svg width="18" height="22" viewBox="0 0 28 34" style="flex-shrink:0"><ellipse cx="14" cy="13" rx="11" ry="10" fill="#5a8a3a" stroke="#2d4a1a" stroke-width="1.5"/><rect x="11.5" y="22" width="5" height="8" rx="2" fill="#2d4a1a"/></svg>Found</div>
-    <div style="display:flex;align-items:center;gap:8px"><svg width="18" height="22" viewBox="0 0 28 34" style="flex-shrink:0"><ellipse cx="14" cy="13" rx="11" ry="10" fill="#9a9a8a" stroke="#666656" stroke-width="1.5"/><rect x="11.5" y="22" width="5" height="8" rx="2" fill="#666656"/></svg>Not yet found</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><svg width="18" height="22" viewBox="0 0 28 34" style="flex-shrink:0"><ellipse cx="14" cy="13" rx="11" ry="10" fill="#9a9a8a" stroke="#666656" stroke-width="1.5"/><rect x="11.5" y="22" width="5" height="8" rx="2" fill="#666656"/></svg>Not yet found</div>
+    <div style="display:flex;align-items:center;gap:8px"><svg width="18" height="22" viewBox="0 0 28 34" style="flex-shrink:0"><ellipse cx="14" cy="13" rx="11" ry="10" fill="#c0392b" stroke="#7a1a1a" stroke-width="1.5"/><rect x="11.5" y="22" width="5" height="8" rx="2" fill="#7a1a1a"/></svg>Removed/lost</div>
   </div>
 </div>
 
@@ -337,7 +343,7 @@ const TREES = [
   {n:100,ch:3,town:'Houston',name:'Craigends Yew',common:'Yew',botanical:'Taxus baccata',addr:'Gryfebank Crescent, Houston, Johnstone PA6 7NY',w3w:'bottled.solutions.repay',lat:55.862616,lng:-4.526264},
   {n:101,ch:3,town:'Johnstone',name:'Wallace Yew',common:'Yew',botanical:'Taxus baccata',addr:'241 Main Rd, Elderslie, Johnstone PA5 9EN',w3w:'stages.begins.wooden',lat:55.835341,lng:-4.488586},
   {n:102,ch:3,town:'Largs',name:'Kelburn Larch',common:'Weeping Larch',botanical:'Larix decidua f. pendula',addr:'Kelburn Estate, Fairlie, Largs KA29 0BE',w3w:'immune.stunning.surcharge',lat:55.770604,lng:-4.844673},
-  {n:103,ch:3,town:'Glasgow',name:'Mighty Swede',common:'Swedish Whitebeam',botanical:'Scandosorbus intermedia',addr:'Queen Victoria Court, Glasgow G14 9AX',w3w:'waving.took.tummy',lat:55.879919,lng:-4.351063},
+  {n:103,ch:3,town:'Glasgow',name:'Mighty Swede',common:'Swedish Whitebeam',botanical:'Scandosorbus intermedia',addr:'Queen Victoria Court, Glasgow G14 9AX',w3w:'waving.took.tummy',lat:55.879919,lng:-4.351063,note:'Listed as Sorbus intermedia in the book'},
   {n:104,ch:3,town:'Glasgow',name:'Ha’penny Alder',common:'Japanese Alder',botanical:'Alnus japonica',addr:'Botanic Garden Arboretum, Kirklee Road, Glasgow G12 0SS',w3w:'couches.light.card',lat:55.88318,lng:-4.289333},
   {n:105,ch:3,town:'Glasgow',name:'Cactus Maple',common:'Oregon maple',botanical:'Acer macrophyllum',addr:'Wyndham St, Glasgow G12 0SS',w3w:'serve.acute.popped',lat:55.882937,lng:-4.291017},
   {n:106,ch:3,town:'Glasgow',name:'Kibble Palace Champion',common:'Castor Oil Tree',botanical:'Kalopanax septemlobus',addr:'Botanic Gardens, Glasgow G12 0UE',w3w:'risks.digits.impact',lat:55.878652,lng:-4.288563},
@@ -355,10 +361,10 @@ const TREES = [
   {n:118,ch:3,town:'Glasgow',name:'Prelapsarian Chestnut',common:'Sweet chestnut',botanical:'Castanea sativa',addr:'Queen\'s Park, Langside Road, Glasgow G42 9TZ',w3w:'repair.brass.town',lat:55.829223,lng:-4.266585},
   {n:119,ch:3,town:'Glasgow',name:'Climbers\' Lime',common:'Silver Pendant Lime',botanical:'Tilia tomentosa \'Petiolaris\'',addr:'Maxwell Park, Terregles Ave, Glasgow G41 4DQ',w3w:'roofs.photo.divide',lat:55.83836,lng:-4.287846},
   {n:120,ch:3,town:'Glasgow',name:'Fire Exit Sycamore',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Burrell Collection, 2060 Pollokshaws Road, Glasgow G43 1AT',w3w:'pints.tinsel.doll',lat:55.831272,lng:-4.307916},
-  {n:121,ch:3,town:'Glasgow',name:'Pollok Oak',common:'Lucombe Oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Pollok House Gardens, Pollok House, Glasgow G43 1AT',w3w:'wooden.spices.pinks',lat:55.827337,lng:-4.315404},
+  {n:121,ch:3,town:'Glasgow',name:'Pollok Oak',common:'Lucombe Oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Pollok House Gardens, Pollok House, Glasgow G43 1AT',w3w:'wooden.spices.pinks',lat:55.827337,lng:-4.315404,note:'? Some debate as to whether this tree is still standing. Could be the remanants of the famous beech have been mistaken for this one.'},
   {n:122,ch:3,town:'Glasgow',name:'Grotto Beech',common:'Weeping Beech',botanical:'Fagus sylvatica \'Pendula\'',addr:'Rosshall Park, 221 Crookston Road, Glasgow G52 3NW',w3w:'trendy.bigger.shower',lat:55.838225,lng:-4.36349},
   {n:123,ch:3,town:'Glasgow',name:'Rainforest Maple',common:'Japanese Maple',botanical:'Acer palmatum',addr:'Rosshall Park, 221 Crookston Road, Glasgow G52 3NW',w3w:'under.paints.closer',lat:55.838521,lng:-4.364403},
-  {n:124,ch:3,town:'Glasgow',name:'Darnley Plane',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Kennishead Road, Glasgow G53 7PJ',w3w:'finger.strut.moment',lat:55.80777,lng:-4.347566},
+  {n:124,ch:3,town:'Glasgow',name:'Darnley Plane',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Kennishead Road, Glasgow G53 7PJ',w3w:'finger.strut.moment',lat:55.80777,lng:-4.347566,note:'Storm damaged, December 2024'},
   {n:125,ch:3,town:'Hamilton',name:'Cadzow Oak',common:'Pedunculate Oak',botanical:'Quercus robur',addr:'Chatelherault Country Park, Hamilton ML3 7UE',w3w:'riders.guard.gross',lat:55.758234,lng:-4.019203},
   {n:126,ch:3,town:'Alloway',name:'Groaning Tree',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Alloway, Ayr KA7 4PQ',w3w:'fetch.bags.rust',lat:55.427838,lng:-4.637567},
   {n:127,ch:3,town:'Stranraer',name:'Welcome To Scotland Elm',common:'Golden Wych Elm',botanical:'Ulmus glabra \'Lutescens\'',addr:'Agnew Park, Agnew Crescent, Stranraer DG9 7JZ',w3w:'shatters.flukes.tastings',lat:54.906924,lng:-5.0348},
@@ -378,11 +384,11 @@ const TREES = [
   {n:141,ch:4,town:'Newcastle upon Tyne',name:'Pregnant Pear',common:'Pear',botanical:'Pyrus communis ssp. sativa',addr:'Heaton Park, Heaton Park View, Newcastle upon Tyne NE6 5BF',w3w:'limes.mercy.lively',lat:54.983789,lng:-1.584672},
   {n:142,ch:4,town:'Newcastle upon Tyne',name:'Shoe Tree',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Armstrong Park, 1 Burlington Gardens, Newcastle upon Tyne NE6 5QJ',w3w:'yoga.piano.spring',lat:54.985163,lng:-1.586692},
   {n:143,ch:4,town:'Newcastle upon Tyne',name:'Toon Wall Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'St Andrews Church, Newgate St, Newcastle upon Tyne NE1 5SS',w3w:'racing.debit.skirt',lat:54.973655,lng:-1.618964},
-  {n:144,ch:4,town:'Newcastle upon Tyne',name:'Tyne Valley Viewpoint',common:'Turner\'s Oak',botanical:'Quercus x turnerii',addr:'St John\'s Cemetery, Elswick, Newcastle upon Tyne NE4 8HT',w3w:'pest.agent.both',lat:54.968022,lng:-1.649497},
+  {n:144,ch:4,town:'Newcastle upon Tyne',name:'Tyne Valley Viewpoint',common:'Turner\'s Oak',botanical:'Quercus x turnerii',addr:'St John\'s Cemetery, Elswick, Newcastle upon Tyne NE4 8HT',w3w:'pest.agent.both',lat:54.968022,lng:-1.649497,note:'Some debate as to whether this is in fact Quercus x crenata'},
   {n:145,ch:4,town:'Newcastle upon Tyne',name:'Foragers’ Wonder',common:'Walnut',botanical:'Juglans regia',addr:'Benwell Hall, 20 Benwell Hall Dr, Newcastle upon Tyne NE15 7PJ',w3w:'gown.rises.likes',lat:54.975488,lng:-1.676273},
   {n:146,ch:4,town:'Gateshead',name:'Saltwell Mulberry',common:'Mulberry',botanical:'Morus nigra',addr:'Saltwell Park, E Park Rd, Low Fell, Gateshead NE9 5AX',w3w:'ropes.career.usual',lat:54.942688,lng:-1.603299},
   {n:147,ch:4,town:'Gateshead',name:'Kemp\'s Fern-leaf Beech',common:'Fern-leaved beech',botanical:'Fagus sylvatica \'Asplenifolia\'',addr:'Saltwell Park, E Park Rd, Low Fell, Gateshead NE9 5AX',w3w:'patch.custom.king',lat:54.942553,lng:-1.605175},
-  {n:148,ch:4,town:'Sunderland',name:'Mackem Trophy',common:'Swedish Whitebeam',botanical:'Scandosorbus intermedia',addr:'Mowbray Park, 6 Burdon Rd, Sunderland SR1 1QB',w3w:'keeps.enable.orders',lat:54.901426,lng:-1.38046},
+  {n:148,ch:4,town:'Sunderland',name:'Mackem Trophy',common:'Swedish Whitebeam',botanical:'Scandosorbus intermedia',addr:'Mowbray Park, 6 Burdon Rd, Sunderland SR1 1QB',w3w:'keeps.enable.orders',lat:54.901426,lng:-1.38046,note:'Listed as Sorbus intermedia in the book'},
   {n:149,ch:4,town:'Durham',name:'Kepier Pear',common:'Pear',botanical:'Pyrus communis ssp. sativa',addr:'7 Orchard Dr, Durham DH1 1LA',w3w:'oval.single.prompting',lat:54.78311,lng:-1.563061},
   {n:150,ch:4,town:'Durham',name:'Scaly Keyaki',common:'Japanese Zelkova',botanical:'Zelkova serrata',addr:'Botanic Gardens, South Rd, Durham DH1 3DF',w3w:'supporter.cheer.salads',lat:54.760659,lng:-1.575874},
   {n:151,ch:4,town:'Darlington',name:'Gardener\'s Secret',common:'Giant Redwood',botanical:'Sequoiadendron giganteum',addr:'South Park, Darlington DL1 5TD',w3w:'trying.mount.pint',lat:54.515214,lng:-1.561014},
@@ -398,11 +404,11 @@ const TREES = [
   {n:161,ch:5,town:'Burnley',name:'Burnley\'s Oldest Oak',common:'Sessile Oak',botanical:'Quercus petraea',addr:'Towneley Towneley park, Holmes St, Burnley BB11 3RQ',w3w:'apply.rinse.moment',lat:53.771736,lng:-2.221591},
   {n:162,ch:5,town:'Longton',name:'Booth\'s Baobab',common:'London plane',botanical:'Platanus x hispanica',addr:'Booth\'s, Liverpool Rd., Longton, Preston PR4 5NB',w3w:'dinner.refers.salt',lat:53.727294,lng:-2.784304},
   {n:163,ch:5,town:'Bolton',name:'Lads And Girls Elm',common:'Field Elm',botanical:'Ulmus minor var. minor',addr:'18 Spa Rd, Bolton BL1 4AG',w3w:'villa.proof.cotton',lat:53.57863,lng:-2.435526},
-  {n:164,ch:5,town:'Warrington',name:'Pre-Theatre Elm',common:'Tabletop elm',botanical:'Ulmus glabra \'Horizontalis\'',addr:'Pyramid Parr Hall, Palmyra Square S, Warrington WA1 1BL',w3w:'herb.advice.finishing',lat:53.387573,lng:-2.5972},
+  {n:164,ch:5,town:'Warrington',name:'Pre-Theatre Elm',common:'Tabletop elm',botanical:'Ulmus glabra \'Horizontalis\'',addr:'Pyramid Parr Hall, Palmyra Square S, Warrington WA1 1BL',w3w:'herb.advice.finishing',lat:53.387573,lng:-2.5972,note:'Removed'},
   {n:165,ch:5,town:'Manchester',name:'Heaton Hybrid',common:'Hybrid buckeye',botanical:'Aesculus x hybrida',addr:'Heaton Hall, Heaton Park, Prestwich, Manchester M25 2SW',w3w:'tricks.scam.cubes',lat:53.536586,lng:-2.254013},
   {n:166,ch:5,town:'Salford',name:'Lowry\'s Tree',common:'Hybrid plack poplar',botanical:'Populus x canadensis',addr:'Peel Park, The Crescent, Salford M5 4WU',w3w:'fits.cape.others',lat:53.486807,lng:-2.271309},
   {n:167,ch:5,town:'Salford',name:'Effluent Fig',common:'Fig',botanical:'Ficus carica',addr:'Blackfriars St, Manchester M3 5AL',w3w:'shift.bags.jump',lat:53.484004,lng:-2.247939},
-  {n:168,ch:5,town:'Manchester',name:'Blue Fox',common:'Foxglove Tree',botanical:'Paulownia fortunei',addr:'St Peter\'s Square, Manchester M2 3AA',w3w:'unwanted.cliff.shark',lat:53.478399,lng:-2.243365},
+  {n:168,ch:5,town:'Manchester',name:'Blue Fox',common:'Foxglove Tree',botanical:'Paulownia fortunei',addr:'St Peter\'s Square, Manchester M2 3AA',w3w:'unwanted.cliff.shark',lat:53.478399,lng:-2.243365,note:'Listed as Paulownia tomentosa in the book'},
   {n:169,ch:5,town:'Manchester',name:'Preservation Plane',common:'London Planes',botanical:'Platanus x hispanica \'Pyramidalis\'',addr:'Bloom Street, Manchester M1 3ED',w3w:'movie.stole.years',lat:53.479045,lng:-2.235394},
   {n:170,ch:5,town:'Manchester',name:'Vimto Redwood',common:'Dawn Redwood',botanical:'Metasequoia glyptostroboides',addr:'Granby Row, 39 Sackville St, Manchester M1 3WE',w3w:'prom.cowboy.spicy',lat:53.47538,lng:-2.234307},
   {n:171,ch:5,town:'Manchester',name:'Turing Ash',common:'Ash',botanical:'Fraxinus excelsior',addr:'Whitworth St, Sackville St, Manchester M1 3WA',w3w:'sculpture.ruled.craft',lat:53.476674,lng:-2.236119},
@@ -412,11 +418,11 @@ const TREES = [
   {n:175,ch:5,town:'Manchester',name:'Exhibition Ash',common:'Ash',botanical:'Fraxinus excelsior',addr:'Whitworth Art Gallery, Oxford Rd, Manchester M15 6ER',w3w:'limbs.activism.choice',lat:53.459802,lng:-2.229959},
   {n:176,ch:5,town:'Manchester',name:'Hoppy Poplar',common:'Serotina poplar',botanical:'Populus x canadensis \'Serotina\'',addr:'Moss Lane East, Manchester M14 4ND',w3w:'clock.probe.phones',lat:53.45867,lng:-2.243139},
   {n:177,ch:5,town:'Manchester',name:'Fairytale Beech',common:'Weeping Beech',botanical:'Fagus sylvatica \'Pendula\'',addr:'Alexandra Park, 180 Russell St, Manchester M16 7JL',w3w:'ready.exam.engage',lat:53.452957,lng:-2.24726},
-  {n:178,ch:5,town:'Manchester',name:'Sturdy Gum',common:'Spinning gum',botanical:'Eucalyptus perriniana',addr:'Whitworth Lane, Fallowfield, Manchester M14 6ZQ',w3w:'wiring.stole.insert',lat:53.444736,lng:-2.215421},
+  {n:178,ch:5,town:'Manchester',name:'Sturdy Gum',common:'Spinning gum',botanical:'Eucalyptus perriniana',addr:'Whitworth Lane, Fallowfield, Manchester M14 6ZQ',w3w:'wiring.stole.insert',lat:53.444736,lng:-2.215421,note:'Listed as Small leaved gum | Eucalyptus parvula in the book'},
   {n:179,ch:5,town:'Manchester',name:'Cemetry Oak',common:'London plane',botanical:'Platanus x hispanica',addr:'212 Barlow Moor Rd, Manchester M21 7GLSouthern Cemetery,',w3w:'modest.cover.doll',lat:53.429024,lng:-2.254552},
   {n:180,ch:5,town:'Manchester',name:'Foggy Lime',common:'Silver Lime',botanical:'Tilia tomentosa',addr:'Fog Lane Park, 139 Fog Lane, Parkville Road, Manchester M20 4UP',w3w:'with.bigger.margin',lat:53.4249,lng:-2.221218},
   {n:181,ch:5,town:'Manchester',name:'Ye Olde Cock Tree',common:'Tree of Heaven',botanical:'Ailanthis altissima',addr:'848 Wilmslow Rd, Didsbury, Manchester M20 2RN',w3w:'hill.wallet.undulation',lat:53.410832,lng:-2.230524},
-  {n:182,ch:5,town:'Manchester',name:'The Brontosaurus',common:'Weeping Giant Redwood',botanical:'Sequoiadendron giganteum \'Pendula\'',addr:'Fletcher Moss Park, 18 Stenner Ln, Didsbury, Manchester M20 2RQ',w3w:'dizzy.slice.sweep',lat:53.409053,lng:-2.2298},
+  {n:182,ch:5,town:'Manchester',name:'The Brontosaurus',common:'Weeping Giant Redwood',botanical:'Sequoiadendron giganteum \'Pendula\'',addr:'Fletcher Moss Park, 18 Stenner Ln, Didsbury, Manchester M20 2RQ',w3w:'dizzy.slice.sweep',lat:53.409053,lng:-2.2298,note:'Died and removed'},
   {n:183,ch:5,town:'Manchester',name:'Marie Louise\'s Chestnut',common:'Sweet Chestnut',botanical:'Castanea sativa',addr:'Marie Louise Gardens Lodge, 31 Holme Rd, Manchester M20 2UP',w3w:'pounds.junior.hope',lat:53.418648,lng:-2.243003},
   {n:184,ch:5,town:'Manchester',name:'Cromwell\'s Beech',common:'Beech',botanical:'Fagus sylvatica',addr:'Wythenshawe Park, Wythenshawe Rd, Wythenshawe, Manchester M23 0AB',w3w:'herb.shave.bronze',lat:53.405765,lng:-2.278253},
   {n:185,ch:5,town:'Manchester',name:'Seven Sisters',common:'Copper Beech',botanical:'Fagus sylvatica \'Purpurea\'',addr:'Flixton House, Flixton Road, Manchester M41 5GJ',w3w:'outermost.manly.held',lat:53.445356,lng:-2.382948},
@@ -438,11 +444,11 @@ const TREES = [
   {n:201,ch:5,town:'Chester',name:'Roman Gardens Mulberry',common:'White mulberry',botanical:'Morus alba',addr:'Roman Gardens, Pepper St, Chester CH1 1DQ',w3w:'circle.spout.hung',lat:53.188187,lng:-2.887531},
   {n:202,ch:5,town:'Eastham',name:'Ward of Eastham',common:'Yew',botanical:'Taxus baccata',addr:'St Mary’s Church, Stanley Ln, Eastham, Birkenhead, Wirral CH62 0AG',w3w:'exhaled.lifestyle.initiates',lat:53.313214,lng:-2.961155},
   {n:203,ch:5,town:'West Kirby',name:'Pesto Pine',common:'Stone Pine',botanical:'Pinus pinea',addr:'Hilbre View, West Kirby, Wirral CH48 4ET',w3w:'thrashed.comment.templates',lat:53.3731,lng:-3.172655},
-  {n:204,ch:5,town:'Birkenhead',name:'Paxton\'s Perfect Park Tree',common:'Pedunculate oak',botanical:'Quercus robur',addr:'Park Dr, Birkenhead CH41 8AU',w3w:'finishing.switch.clear',lat:53.391912,lng:-3.045309},
+  {n:204,ch:5,town:'Birkenhead',name:'Paxton\'s Perfect Park Tree',common:'Pedunculate oak',botanical:'Quercus robur',addr:'Park Dr, Birkenhead CH41 8AU',w3w:'finishing.switch.clear',lat:53.391912,lng:-3.045309,note:'Fell 2024/5'},
   {n:205,ch:5,town:'Birkenhead',name:'Flaybrick Fern-leaved Beech',common:'Fern-leaved beech',botanical:'Fagus sylvatica \'Asplenifolia\'',addr:'Flaybrick Memorial Gardens, Tollemache Road, Birkenhead CH41 0DG',w3w:'dock.vivid.being',lat:53.396601,lng:-3.063676},
   {n:206,ch:5,town:'Birkenhead',name:'Set Piece Elm',common:'Tabletop elm',botanical:'Ulmus glabra \'Horizontalis\'',addr:'Hamilton Square, Birkenhead CH41 6DQ',w3w:'intend.garage.nest',lat:53.392963,lng:-3.015721},
   {n:207,ch:5,town:'Liverpool',name:'Referee',common:'Algerian Oak',botanical:'Quercus canariensis',addr:'Stanley Park carpark, Priory Rd, Anfield, Liverpool L4 0TQ',w3w:'sugars.bride.send',lat:53.433067,lng:-2.960892},
-  {n:208,ch:5,town:'Liverpool',name:'Service Tree of Wavertree',common:'Service Tree of Fontainbleau',botanical:'Karpatiosorbus latifolia',addr:'Wavertree Botanic Gardens, Edge Ln, Liverpool L7 9PL',w3w:'keen.store.paints',lat:53.406924,lng:-2.941029},
+  {n:208,ch:5,town:'Liverpool',name:'Service Tree of Wavertree',common:'Service Tree of Fontainbleau',botanical:'Karpatiosorbus latifolia',addr:'Wavertree Botanic Gardens, Edge Ln, Liverpool L7 9PL',w3w:'keen.store.paints',lat:53.406924,lng:-2.941029,note:'Listed as Sorbus latifolia in the book'},
   {n:209,ch:5,town:'Liverpool',name:'Green Lane Ash',common:'Single leaved ash',botanical:'Fraxinus excelsior \'Diversifolia\'',addr:'Green Lane, Liverpool L18 6HD',w3w:'loads.rich.poppy',lat:53.386414,lng:-2.901805},
   {n:210,ch:5,town:'Liverpool',name:'Allerton Oak',common:'Hybrid oak',botanical:'Quercus x rosacea',addr:'Calderstones Park, Calderstones Mansion House, Calderstones Rd, Liverpool L18 3JB',w3w:'vibrates.transmitted.bumpy',lat:53.382587,lng:-2.892802},
   {n:211,ch:5,town:'Liverpool',name:'Japanese Garden Maple',common:'Purple leaved Japanese maple',botanical:'Acer palmatum \'Atropurpurea\'',addr:'Calderstones Park, Calderstones Mansion House, Calderstones Rd, Liverpool L18 3JB',w3w:'trap.throw.beside',lat:53.381967,lng:-2.894567},
@@ -478,13 +484,13 @@ const TREES = [
   {n:241,ch:6,town:'York',name:'Finest Beech',common:'Beech',botanical:'Fagus sylvatica',addr:'Minster Yard, York YO1 7JJ',w3w:'work.office.ruby',lat:53.963279,lng:-1.081706},
   {n:242,ch:6,town:'Dunnington',name:'Colossal Birch',common:'Paper Birch',botanical:'Betula papyrifera',addr:'42 Cedar Glade, Dunnington, York YO19 5QZ',w3w:'jogging.spurted.barmaid',lat:53.961931,lng:-0.981367},
   {n:243,ch:6,town:'Leeds',name:'Lonely Tree',common:'Wheatley Elm',botanical:'Ulmus minor \'Sarniensis\'',addr:'Ring Road, Moortown, Leeds LS17 6BJ',w3w:'pillow.flops.toxic',lat:53.847415,lng:-1.543336},
-  {n:244,ch:6,town:'Leeds',name:'Roundhay Gem',common:'Himalayan Whitebeam',botanical:'Griffitharia vestita',addr:'Roundhay Park, Princes Avenue, Leeds LS8 2EP',w3w:'hooks.daisy.half',lat:53.838791,lng:-1.502996},
+  {n:244,ch:6,town:'Leeds',name:'Roundhay Gem',common:'Himalayan Whitebeam',botanical:'Griffitharia vestita',addr:'Roundhay Park, Princes Avenue, Leeds LS8 2EP',w3w:'hooks.daisy.half',lat:53.838791,lng:-1.502996,note:'Listed as Sorbus aria in the book'},
   {n:245,ch:6,town:'Leeds',name:'Lakeside Café Guards',common:'London plane',botanical:'Platanus x hispanica',addr:'The Lakeside Café, Roundhay Park, Leeds LS8 2JL',w3w:'loose.patrol.slower',lat:53.834964,lng:-1.49673},
   {n:246,ch:6,town:'Leeds',name:'Lakeside Café Guards',common:'London plane',botanical:'Platanus x hispanica',addr:'The Lakeside Café, Roundhay Park, Leeds LS8 2JL',w3w:'',lat:0.0,lng:0.0},
   {n:247,ch:6,town:'Leeds',name:'Middle Earth Walnut',common:'Japanese Walnut',botanical:'Juglans mandshurica var. sachalinensis',addr:'The Hollies, Weetwood Lane, Leeds LS16 5PA',w3w:'offer.club.letter',lat:53.836042,lng:-1.581389},
   {n:248,ch:6,town:'Leeds',name:'Bungalow Tree',common:'Yew',botanical:'Taxus baccata',addr:'Meanwood Park, 92-96 Green Road, Leeds LS6 4LT',w3w:'much.being.adding',lat:53.831433,lng:-1.574858},
   {n:249,ch:6,town:'Leeds',name:'Slanted Thorn',common:'hawthorn',botanical:'Crataegus monogyna',addr:'Queen Square, Leeds, LS2 8AJ',w3w:'safe.vent.unity',lat:53.803673,lng:-1.545527},
-  {n:250,ch:6,town:'Leeds',name:'Headrow Bastard Service Tree',common:'Bastard Service Tree',botanical:'Hedlundia thuringiaca',addr:'The Headrow, Leeds LS1 8EQ',w3w:'really.smooth.raft',lat:53.799766,lng:-1.547035},
+  {n:250,ch:6,town:'Leeds',name:'Headrow Bastard Service Tree',common:'Bastard Service Tree',botanical:'Hedlundia thuringiaca',addr:'The Headrow, Leeds LS1 8EQ',w3w:'really.smooth.raft',lat:53.799766,lng:-1.547035,note:'Listed as Sorbus x thuringiaca in the book'},
   {n:251,ch:6,town:'Leeds',name:'Old Wych',common:'Wych elm',botanical:'Ulmus glabra',addr:'Park Square North, Leeds LS1 2NP',w3w:'labels.spare.jabs',lat:53.799119,lng:-1.551192},
   {n:252,ch:6,town:'Leeds',name:'Penny Pocket Cherry',common:'Double-flowered wild cherry',botanical:'Prunus avium \'Plena\'',addr:'Penny Pocket Park, 2-6 Kirkgate, Leeds LS2 7DJ',w3w:'tree.plenty.vows',lat:53.795804,lng:-1.534471},
   {n:253,ch:6,town:'Bradford',name:'Humble Beech',common:'Variegated Beech',botanical:'Fagus sylvatica \'Albovariegata\'',addr:'Lister Park, Bradford BD9 4NS',w3w:'zones.media.fund',lat:53.813807,lng:-1.77346},
@@ -541,7 +547,7 @@ const TREES = [
   {n:304,ch:7,town:'Nottingham',name:'Forest Maple',common:'Cappadoccian Maple',botanical:'Acer cappadocicum',addr:'Forest Recreation Ground, Mansfield Road, Nottingham NG5 2BU',w3w:'cargo.laser.river',lat:52.966297,lng:-1.15392},
   {n:305,ch:7,town:'Nottingham',name:'Inclosure Oak',common:'Pedunculate Oak',botanical:'Quercus robur',addr:'Forest Recreation Ground, Mansfield Road Enrance',w3w:'animal.giant.urban',lat:52.966378,lng:-1.154503},
   {n:306,ch:7,town:'Nottingham',name:'Rock Cherry',common:'Tibetan Cherry',botanical:'Prunus serrulata',addr:'Rock Cemetery, 49-51 Forest Rd E, Nottingham NG1 4HT',w3w:'calm.fails.middle',lat:52.965139,lng:-1.153651},
-  {n:307,ch:7,town:'Nottingham',name:'Antediluvian Alder',common:'Cut-leaf Alder',botanical:'Alnus glutinosa ‘Laciniata’',addr:'Nottingham Arboretum, Waverley Street, Nottingham NG7 4HF',w3w:'cages.keen.fishery',lat:52.959991,lng:-1.157415},
+  {n:307,ch:7,town:'Nottingham',name:'Antediluvian Alder',common:'Cut-leaf Alder',botanical:'Alnus glutinosa ‘Laciniata’',addr:'Nottingham Arboretum, Waverley Street, Nottingham NG7 4HF',w3w:'cages.keen.fishery',lat:52.959991,lng:-1.157415,note:'Dead, but standing 2025'},
   {n:308,ch:7,town:'Nottingham',name:'Surprise Buckeye',common:'Ohio Buckeye',botanical:'Aesculus flava',addr:'Shakespeare St, Nottingham NG1 4FQ',w3w:'groom.apron.stiff',lat:52.957754,lng:-1.152412},
   {n:309,ch:7,town:'Nottingham',name:'NTU JC Teas',common:'Hybrid catalpa',botanical:'Catalpa x erubescens \'J C Teas\'',addr:'30 Chaucer St, Nottingham NG1 5LP',w3w:'random.horns.cargo',lat:52.957457,lng:-1.155232},
   {n:310,ch:7,town:'Nottingham',name:'General Ash',common:'Weeping ash',botanical:'Fraxinus excelsior ‘Pendula’',addr:'General Cemetery, Alfreton Rd, Canning, Nottingham NG1 5GP',w3w:'answer.custom.cargo',lat:52.956676,lng:-1.161677},
@@ -565,7 +571,7 @@ const TREES = [
   {n:328,ch:7,town:'Market Overton',name:'Black Bull Elm',common:'Huntingdon Elm',botanical:'Ulmus x hollandica \'Vegeta\'',addr:'Teigh Rd, Market Overton, Oakham LE15 7PW',w3w:'excavated.monitors.unwanted',lat:52.738748,lng:-0.687478},
   {n:329,ch:7,town:'Oakham',name:'Rutland Maple',common:'Norway Maple',botanical:'Acer platanoides',addr:'11 Vicarage Rd, Oakham LE15 6EG',w3w:'harmlessly.walkway.pounds',lat:52.670561,lng:-0.722496},
   {n:330,ch:7,town:'Stamford',name:'Timeless Plane',common:'London plane',botanical:'Platanus x hispanica',addr:'Water St, Stamford PE9 2NW',w3w:'status.woof.panel',lat:52.650213,lng:-0.475857},
-  {n:331,ch:7,town:'Stamford',name:'St George\'s Whitebeam',common:'Whitebem',botanical:'Aria edulis',addr:'St George\'s church, St George\'s Square, Stamford PE9 2BN',w3w:'slug.clear.detail',lat:52.651614,lng:-0.476124},
+  {n:331,ch:7,town:'Stamford',name:'St George\'s Whitebeam',common:'Whitebem',botanical:'Aria edulis',addr:'St George\'s church, St George\'s Square, Stamford PE9 2BN',w3w:'slug.clear.detail',lat:52.651614,lng:-0.476124,note:'Listed as Sorbus aria in the book'},
   {n:332,ch:7,town:'Stamford',name:'Coalition Tree',common:'Dawn Redwood',botanical:'Metasequoia glyptostroboides',addr:'Town Meadows, Bath Row, Stamford PE9 2QU',w3w:'hammer.fire.frozen',lat:52.650213,lng:-0.4795},
   {n:333,ch:7,town:'Leicester',name:'Leicester\'s Pride of India',common:'Golden Rain tree',botanical:'Koelreuteria paniculata',addr:'Abbey Park, Abbey Park Rd, Leicester LE4 5AQ',w3w:'wake.castle.heat',lat:52.648596,lng:-1.137815},
   {n:334,ch:7,town:'Leicester',name:'Luscious-Locked Ginkgo',common:'Ginkgo',botanical:'Ginkgo biloba',addr:'Cavendish House, Abbey Park, Abbey Park Rd, Leicester LE4 5AQ',w3w:'tuck.trend.horns',lat:52.649054,lng:-1.138704},
@@ -601,9 +607,9 @@ const TREES = [
   {n:364,ch:8,town:'Birmingham',name:'Colossal Poplar',common:'Black Poplar',botanical:'Populus nigra ssp. betulifolia',addr:'Handsworth Park, 32 Hinstock Rd, Birmingham B20 2EU',w3w:'memo.driven.buzz',lat:52.510255,lng:-1.926751},
   {n:365,ch:8,town:'Birmingham',name:'St Phillip\'s Elm',common:'Horizontalis Elm',botanical:'Ulmus glabra \'Horizontralis\'',addr:'Colmore Row, Birmingham B3 2QB',w3w:'mobile.cliff.paint',lat:52.481525,lng:-1.899199},
   {n:366,ch:8,town:'Birmingham',name:'Prodi\'s Alder',common:'Italian Alder',botanical:'Alnus cordata',addr:'214 Granville St, Birmingham B1 1RY',w3w:'brave.tells.elbow',lat:52.473413,lng:-1.906062},
-  {n:367,ch:8,town:'Birmingham',name:'Birmingham Dwarf',common:'Jaqueline Hillier Elm',botanical:'Ulmus \'Jacqueline Hillier\'',addr:'Westbourne Rd, Birmingham B15 3TR',w3w:'trips.purely.insert',lat:52.467483,lng:-1.930415},
+  {n:367,ch:8,town:'Birmingham',name:'Birmingham Dwarf',common:'Jaqueline Hillier Elm',botanical:'Ulmus \'Jacqueline Hillier\'',addr:'Westbourne Rd, Birmingham B15 3TR',w3w:'trips.purely.insert',lat:52.467483,lng:-1.930415,note:'Removed. Reason unknown.'},
   {n:368,ch:8,town:'Birmingham',name:'St George\'s Chestnut',common:'Sweet chestnut',botanical:'Castanea sativa',addr:'St George\'s church, 1 Westbourne Cres, Birmingham B15 3DQ',w3w:'worked.slug.plug',lat:52.467349,lng:-1.922179},
-  {n:369,ch:8,town:'Birmingham',name:'Wheeleys\' Oriental Plane',common:'Oriental plane',botanical:'Platanus orientalis',addr:'Wheeley\'s Road',w3w:'puzzle.looked.table',lat:52.465327,lng:-1.914386},
+  {n:369,ch:8,town:'Birmingham',name:'Wheeleys\' Oriental Plane',common:'Oriental plane',botanical:'Platanus orientalis',addr:'Wheeley\'s Road',w3w:'puzzle.looked.table',lat:52.465327,lng:-1.914386,note:'Felled for unknown reason, along with the copper beech. Winter 2025/26'},
   {n:370,ch:8,town:'Birmingham',name:'Aspirational Plane',common:'London plane',botanical:'Platanus x hispanica',addr:'Gough Rd, Birmingham B15 2JG',w3w:'warns.tribal.rots',lat:52.464384,lng:-1.910445},
   {n:371,ch:8,town:'Birmingham',name:'Halls-of-Residence Cedar',common:'Atlas Cedar',botanical:'Cedrus atlantica \'Glauca\'',addr:'Church Road , The Vale, 37 Church Rd, Birmingham B15 3SR',w3w:'exact.decks.seated',lat:52.462551,lng:-1.922755},
   {n:372,ch:8,town:'Birmingham',name:'Attwood\'s Cedar',common:'Cedar of Lebanon',botanical:'Cedrus libani',addr:'Grove Park , Grove Park 253 Harborne Park Rd, Birmingham B17 0BJ',w3w:'patrol.damp.vision',lat:52.4508,lng:-1.955878},
@@ -622,7 +628,7 @@ const TREES = [
   {n:385,ch:8,town:'Coventry',name:'Ringway Tree',common:'Tree of Heaven',botanical:'Ailanthus altissima',addr:'Grove St, Coventry CV1 5PH',w3w:'dress.intro.feels',lat:52.407436,lng:-1.502364},
   {n:386,ch:8,town:'Coventry',name:'Salt\'s Golden Catalpa',common:'Golden Bean Tree',botanical:'Catalpa bignonioides \'Aurea\'',addr:'Corner of Little Park Street and Union Street. Salts Tobacconists No. 1 New Union St, Coventry CV1 2HN',w3w:'slime.relay.joined',lat:52.404956,lng:-1.508727},
   {n:387,ch:8,town:'Coventry',name:'Greyfriars Spanish Oak',common:'Spanish oak',botanical:'Quercus x crenata',addr:'3 Queen Victoria Rd, Coventry CV1 1EY',w3w:'rift.pinch.hung',lat:52.404875,lng:-1.51372},
-  {n:388,ch:8,town:'Coventry',name:'Cemetery Ash',common:'Narrow Leaved Ash',botanical:'Fraxinus angustifolia',addr:'London Rd, Coventry CV1 2JT',w3w:'deputy.salt.vine',lat:52.400455,lng:-1.500022},
+  {n:388,ch:8,town:'Coventry',name:'Cemetery Ash',common:'Narrow Leaved Ash',botanical:'Fraxinus angustifolia',addr:'London Rd, Coventry CV1 2JT',w3w:'deputy.salt.vine',lat:52.400455,lng:-1.500022,note:'Damaged in storm winter 2024/5'},
   {n:389,ch:8,town:'Coventry',name:'The Baginton Oak',common:'Pedunculate Oak',botanical:'Quercus robur',addr:'Baginton, Coventry CV8 3AT',w3w:'member.search.punch',lat:52.367925,lng:-1.492121},
   {n:390,ch:8,town:'Leamington Spa',name:'Ginger Peel',common:'Paperbark Maple',botanical:'Acer griseum',addr:'Jephson Gardens, Newbold Terrace, Leamington Spa CV32 4AA',w3w:'toward.hidden.ankle',lat:52.287961,lng:-1.531426},
   {n:391,ch:8,town:'Leamington Spa',name:'OAG Oak',common:'Spanish Oak',botanical:'Quercus x crenata',addr:'Old Art Gallery, Avenue Rd, Leamington Spa CV31 3NN',w3w:'send.these.each',lat:52.285913,lng:-1.536491},
@@ -660,10 +666,10 @@ const TREES = [
   {n:423,ch:9,town:'Norwich',name:'Thorn Lane Locust',common:'False Acacia',botanical:'Robinia pseudoacacia',addr:'Thorn Lane, Norwich NR1 1QU',w3w:'chin.feels.them',lat:52.625229,lng:1.298396},
   {n:424,ch:9,town:'Norwich',name:'Churchyard Jewel',common:'Judas Tree',botanical:'Cercis siliquastrum',addr:'St Julian, St Julian\'s Alley, Rouen Rd, Norwich NR1 1QT',w3w:'lines.bucks.scar',lat:52.627062,lng:1.299596},
   {n:425,ch:9,town:'Norwich',name:'Old Faithful',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'James Stuart Garden, Faith Lane',w3w:'tidy.remove.risen',lat:52.630242,lng:1.302483},
-  {n:426,ch:9,town:'Norwich',name:'Cloister Service Tree',common:'True service tree',botanical:'Cormus domestica',addr:'The Close, Norwich NR1 4DH',w3w:'logic.bucks.hurry',lat:52.631104,lng:1.301417},
+  {n:426,ch:9,town:'Norwich',name:'Cloister Service Tree',common:'True service tree',botanical:'Cormus domestica',addr:'The Close, Norwich NR1 4DH',w3w:'logic.bucks.hurry',lat:52.631104,lng:1.301417,note:'Listed as Sorbus domestica in the book'},
   {n:427,ch:9,town:'Norwich',name:'Tombland Plane',common:'London plane',botanical:'Platanus x hispanica',addr:'Tombland, Norwich NR3 1HE',w3w:'sweat.maple.serves',lat:52.630943,lng:1.298619},
   {n:428,ch:9,town:'Norwich',name:'Patagonian Skyscraper',common:'Roble',botanical:'Nothofagus obliqua',addr:'St Michael at Plea, Redwell Street, Norwich NR2 4SN',w3w:'swear.debate.bids',lat:52.630404,lng:1.297197},
-  {n:429,ch:9,town:'Norwich',name:'Hungate Tree of Heaven',common:'Tree of Heaven',botanical:'Ailanthus altissima',addr:'St Peter Hungate',w3w:'sketch.future.counts',lat:52.630997,lng:1.296797},
+  {n:429,ch:9,town:'Norwich',name:'Hungate Tree of Heaven',common:'Tree of Heaven',botanical:'Ailanthus altissima',addr:'St Peter Hungate',w3w:'sketch.future.counts',lat:52.630997,lng:1.296797,note:'Removed'},
   {n:430,ch:9,town:'Norwich',name:'Instaplane',common:'London plane',botanical:'Platanus x hispanica',addr:'Elm Hill, Norwich NR3 1HN',w3w:'simply.bats.ideal',lat:52.631455,lng:1.296842},
   {n:431,ch:9,town:'Norwich',name:'Gatekeeper',common:'Silver maple',botanical:'Acer saccharinum',addr:'81 Pottergate, Norwich NR2 1BF',w3w:'coast.joke.skirt',lat:52.629784,lng:1.292888},
   {n:432,ch:9,town:'Norwich',name:'Guildhall Plane',common:'Oriental plane',botanical:'Platanus orientalis',addr:'Guildhall Hill, Norwich NR2 1JS',w3w:'green.them.calls',lat:52.629002,lng:1.292977},
@@ -676,7 +682,7 @@ const TREES = [
   {n:439,ch:9,town:'Buckden',name:'Buckden Retiree',common:'London plane',botanical:'Platanus x hispanica',addr:'Buckden Towers, High St, Buckden, Saint Neots PE19 5TA',w3w:'moment.mountain.bulky',lat:52.2961,lng:-0.25108},
   {n:440,ch:9,town:'Bedford',name:'Model Maple',common:'Silver Maple',botanical:'Acer saccharinum',addr:'De Parys Ave, Bedford MK40 2TU',w3w:'space.matter.levels',lat:52.144742,lng:-0.467146},
   {n:441,ch:9,town:'Bedford',name:'Puublic-Private Partnership',common:'Oriental Plane',botanical:'Platanus orientalis',addr:'62 Kimbolton Rd, Bedford MK40 2NX',w3w:'slides.stands.work',lat:52.142559,lng:-0.460157},
-  {n:442,ch:9,town:'Cambridge',name:'Shapeshifter',common:'False acacia',botanical:'Robinia pseudoacacia',addr:'Market St, Cambridge CB2 3NZ',w3w:'nodded.sweep.zebra',lat:52.206029,lng:0.120446},
+  {n:442,ch:9,town:'Cambridge',name:'Shapeshifter',common:'False acacia',botanical:'Robinia pseudoacacia',addr:'Market St, Cambridge CB2 3NZ',w3w:'nodded.sweep.zebra',lat:52.206029,lng:0.120446,note:'Removed 2024'},
   {n:443,ch:9,town:'Cambridge',name:'King\'s Conker',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'King\'s College Chapel, King\'s Parade, Cambridge CB2 1ST',w3w:'wallet.cheer.showed',lat:52.205032,lng:0.117366},
   {n:444,ch:9,town:'Cambridge',name:'Christ\'s Conker',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'Christ\'s Pieces, 15 Emmanuel Rd, Cambridge CB1 1JW',w3w:'buns.courier.verge',lat:52.206568,lng:0.124318},
   {n:445,ch:9,town:'Cambridge',name:'Tentacle Tree',common:'Oriental Plane',botanical:'Platanus orientalis',addr:'Emmanuel College, St Andrew\'s St, Cambridge CB2 3AP',w3w:'worked.oiled.rated',lat:52.204843,lng:0.125154},
@@ -725,7 +731,7 @@ const TREES = [
   {n:488,ch:10,town:'South London',name:'Cannizaro Gum',common:'Mountain Gum',botanical:'Eucalyptus dalrympleana',addr:'Cannizaro Park, Westside Common, London SW19 4UE',w3w:'palms.flies.gains',lat:51.425655,lng:-0.230292},
   {n:489,ch:10,town:'South London',name:'Pavement Hog',common:'Sweet Chestnut',botanical:'Castanea sativa',addr:'3 Heathview Gardens, London SW15 3SZ',w3w:'ships.grand.rises',lat:51.448887,lng:-0.230897},
   {n:490,ch:10,town:'South London',name:'Modernist Oak',common:'Lucombe Oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Finchdean House, Danebury Avenue, Roehampton, London SW15 4EQ',w3w:'award.theme.return',lat:51.451366,lng:-0.247036},
-  {n:491,ch:10,town:'South London',name:'Gateway Oak',common:'Turner\'s Oak',botanical:'Quercus x turnerii \'Pseudoturneri\'',addr:'Queen\'s Road, Kingston upon Thames KT2 7SR',w3w:'credit.rooms.shout',lat:51.419726,lng:-0.28602},
+  {n:491,ch:10,town:'South London',name:'Gateway Oak',common:'Turner\'s Oak',botanical:'Quercus x turnerii \'Pseudoturneri\'',addr:'Queen\'s Road, Kingston upon Thames KT2 7SR',w3w:'credit.rooms.shout',lat:51.419726,lng:-0.28602,note:'Removed'},
   {n:492,ch:10,town:'West London',name:'Royal Oak',common:'Pedunculate Oak',botanical:'Quercus robur',addr:'Richmond Park, Star and Garter Hill, Richmond TW10 5HS',w3w:'words.beast.degree',lat:51.444629,lng:-0.283511},
   {n:493,ch:10,town:'West London',name:'Richmond Riverside Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'The Towpath, Riverside, Richmond TW10 6UJ',w3w:'wedge.from.slams',lat:51.45646,lng:-0.304712},
   {n:494,ch:10,town:'West London',name:'Maids of Honour Stone Pine',common:'Stone Pine',botanical:'Pinus pinea',addr:'Richmond Green TW9',w3w:'belly.grades.deflection',lat:51.461392,lng:-0.30871},
@@ -744,8 +750,8 @@ const TREES = [
   {n:507,ch:10,town:'North London',name:'Friendship Tree',common:'London Plane',botanical:'Platanus x hispanica',addr:'Morley Avenue, Noel Park, London N22 6NG',w3w:'brand.grit.preoccupied',lat:51.596984,lng:-0.103407},
   {n:508,ch:10,town:'North London',name:'Bruce Castle Oak',common:'Sessile Oak',botanical:'Quercus petraea',addr:'Bruce Castle, Lordship Lane, London N17 8NU',w3w:'',lat:0.0,lng:0.0},
   {n:509,ch:10,town:'North London',name:'St Ann\'s Thorn',common:'Spotted Thorn',botanical:'Crataegus punctata',addr:'St Ann\'s Hospital, St Ann\'s Road, London N15 3TH',w3w:'closed.third.handle',lat:51.580194,lng:-0.091593},
-  {n:510,ch:10,town:'North London',name:'Municipal Sycamore',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Hornsey Town Hall, The Broadway, London N8 9JJ',w3w:'oasis.junior.grin',lat:51.578927,lng:-0.123157},
-  {n:511,ch:10,town:'North London',name:'Spiral Almond',common:'Almond',botanical:'Prunus dulcis',addr:'Charter Court, Stroud Green Road, London, N4 3SG',w3w:'sunset.hint.relax',lat:51.568874,lng:-0.110497},
+  {n:510,ch:10,town:'North London',name:'Municipal Sycamore',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Hornsey Town Hall, The Broadway, London N8 9JJ',w3w:'oasis.junior.grin',lat:51.578927,lng:-0.123157,note:'Appears to have died, all major branches cut May 2026'},
+  {n:511,ch:10,town:'North London',name:'Spiral Almond',common:'Almond',botanical:'Prunus dulcis',addr:'Charter Court, Stroud Green Road, London, N4 3SG',w3w:'sunset.hint.relax',lat:51.568874,lng:-0.110497,note:'Major branches removed winter 25/26, but flowered well in Feb 2026'},
   {n:512,ch:10,town:'East London',name:'Sprawling Handkerchief Tree',common:'Handkerchief Tree',botanical:'Davidia involucrata',addr:'Kynaston Gardens, Kynaston Avenue, London N16 0PJ',w3w:'traded.brick.limbs',lat:51.560896,lng:-0.07425},
   {n:513,ch:10,town:'East London',name:'Loddiges\' Service Tree',common:'True Service Tree',botanical:'Sorbus domestica',addr:'Clapton Square, London, E5 8HE',w3w:'nerve.memory.life',lat:51.551544,lng:-0.053698},
   {n:514,ch:10,town:'East London',name:'Victoria Park Ash',common:'Narrow Leaved Ash',botanical:'Fraxinus angustifolia',addr:'Victoria Park, London E2 9JG',w3w:'brass.sorters.total',lat:51.534969,lng:-0.045374},
@@ -785,7 +791,7 @@ const TREES = [
   {n:548,ch:10,town:'Central London',name:'Legal High',common:'Dawn Redwood',botanical:'Metasequoia glyptostroboides',addr:'Carey St, Holborn, London WC2A 2JB',w3w:'outer.scars.salon',lat:51.514998,lng:-0.112838},
   {n:549,ch:10,town:'Central London',name:'Whitehall Climber',common:'Southern Catalpa',botanical:'Catalpa bignonioides',addr:'Whitehall Gardens, London, WC2N 5DG',w3w:'basket.mental.amber',lat:51.506024,lng:-0.123331},
   {n:550,ch:10,town:'Central London',name:'Bazalgette\'s Plane',common:'Orinetal plane',botanical:'Platanus orientalis',addr:'Victoria Embankment, Horse Guards Ave, London SW1A 2JL',w3w:'basket.mental.amber',lat:51.506024,lng:-0.123331},
-  {n:551,ch:10,town:'Central London',name:'Billy Hughes\'s Wattle',common:'Mimosa',botanical:'Acacia dealbata',addr:'Lupus St, Pimlico, London SW1V 3EB',w3w:'scrap.less.vouch',lat:51.488451,lng:-0.137366},
+  {n:551,ch:10,town:'Central London',name:'Billy Hughes\'s Wattle',common:'Mimosa',botanical:'Acacia dealbata',addr:'Lupus St, Pimlico, London SW1V 3EB',w3w:'scrap.less.vouch',lat:51.488451,lng:-0.137366,note:'Fell, 12/03/26'},
   {n:552,ch:10,town:'Central London',name:'Ten Storey Ginkgo',common:'Ginkgo',botanical:'Ginkgo biloba',addr:'St John\'s Gardens, Horseferry Road, London SW1P 2AF',w3w:'glory.fakes.risks',lat:51.4943,lng:-0.1284},
   {n:553,ch:10,town:'Central London',name:'Rose Garden Zelkova',common:'Caucasian Zelkova',botanical:'Zelkova carpinifolia',addr:'Hyde Park Rose Garden, London SW1X 7NL',w3w:'waving.when.moral',lat:51.504245,lng:-0.156152},
   {n:554,ch:10,town:'Central London',name:'Berkeley Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'Berkeley Square, Mayfair, London W1J 6EE',w3w:'',lat:0.0,lng:0.0},
@@ -817,7 +823,7 @@ const TREES = [
   {n:580,ch:11,town:'Dover',name:'Hellfire Corner Elm',common:'Tabletop elm',botanical:'Ulmus glabra \'Horizontalis\'',addr:'Camden Crescent, Dover CT16 1LE',w3w:'magazines.fever.modes',lat:51.123423,lng:1.315743},
   {n:581,ch:11,town:'Hastings',name:'Peace Ginkgo',common:'Ginkgo',botanical:'Ginkgo biloba',addr:'Alexandra Park, St Helen\'s Road, Hastings TN34 2LQ',w3w:'secret.short.ruler',lat:50.865661,lng:0.570321},
   {n:582,ch:11,town:'Eastbourne',name:'An Eastbourne Elm',common:'Wheatley elm',botanical:'Ulmus minor \'Sarniensis\'',addr:'Carlisle Road, Eastbourne BN21 4JR',w3w:'dices.danger.baked',lat:50.762222,lng:0.280386},
-  {n:583,ch:11,town:'Eastbourne',name:'Sight Screen Elm',common:'Huntingdon elm',botanical:'Ulmus x hollandica \'Vegeta\'',addr:'22 Blackwater Rd, Eastbourne BN21 4HD',w3w:'finely.cattle.tribal',lat:50.763974,lng:0.27932},
+  {n:583,ch:11,town:'Eastbourne',name:'Sight Screen Elm',common:'Huntingdon elm',botanical:'Ulmus x hollandica \'Vegeta\'',addr:'22 Blackwater Rd, Eastbourne BN21 4HD',w3w:'finely.cattle.tribal',lat:50.763974,lng:0.27932,note:'Removed'},
   {n:584,ch:11,town:'Tunbridge Wells',name:'Queen Anne\'s Oak',common:'Pedunculate Oak',botanical:'Quercus robur',addr:'Tunbridge Wells Common, Tunbridge Wells TN4 8BX',w3w:'finely.traps.necks',lat:51.129649,lng:0.259868},
   {n:585,ch:11,town:'East Grinstead',name:'Almshouse Baobab',common:'Baobab Plane',botanical:'Platanus x hispanica \'Baobab\'',addr:'High St, East Grinstead RH19 3BX',w3w:'income.spill.rally',lat:51.124043,lng:-0.004231},
   {n:586,ch:11,town:'Crawley',name:'Tilgate Hawthorn',common:'Hawthorn',botanical:'Crataegus monogyna',addr:'Constable Road, Crawley RH10 5LW',w3w:'unions.lined.afford',lat:51.099059,lng:-0.176181},
@@ -841,9 +847,9 @@ const TREES = [
   {n:604,ch:11,town:'Brighton',name:'Just Good Friends',common:'Fig',botanical:'Ficus carica',addr:'Ship Street, Brighton BN1 1AF',w3w:'await.tall.swaps',lat:50.822,lng:-0.141116},
   {n:605,ch:11,town:'Brighton',name:'Just Good Friends',common:'Fig',botanical:'Ficus carica',addr:'Ship Street, Brighton BN1 1AF',w3w:'await.tall.swaps',lat:50.822,lng:-0.141116},
   {n:606,ch:11,town:'Brighton',name:'Dutch Courage Elm',common:'Fastigiate elm',botanical:'Ulmus \'Lobel\'',addr:'The Sussex Arms, 33-34 East Street, Brighton BN1 1HL',w3w:'lance.stable.begun',lat:50.821246,lng:-0.139067},
-  {n:607,ch:11,town:'Brighton',name:'Crescent Oak',common:'Holm Oak',botanical:'Quercus ilex',addr:'Montpelier Crescent, Brighton BN1 3JF',w3w:'costs.life.tennis',lat:50.829466,lng:-0.148587},
+  {n:607,ch:11,town:'Brighton',name:'Crescent Oak',common:'Holm Oak',botanical:'Quercus ilex',addr:'Montpelier Crescent, Brighton BN1 3JF',w3w:'costs.life.tennis',lat:50.829466,lng:-0.148587,note:'Removed'},
   {n:608,ch:11,town:'Brighton',name:'Regency Splendour',common:'Wheatley Elm',botanical:'Ulmus minor \'Sarniensis\'',addr:'Seven Dials, Montpelier Crescent, Brighton BN1 3JL',w3w:'dame.fits.exact',lat:50.830679,lng:-0.147605},
-  {n:609,ch:11,town:'Hove',name:'Hove\'s Elm Actually',common:'Hoesholm elm',botanical:'Ulmus minor \'Hoersholmensis\'',addr:'56 Old Shoreham Rd, Hove BN3 6GF',w3w:'butter.scuba.begin',lat:50.836635,lng:-0.163654},
+  {n:609,ch:11,town:'Hove',name:'Hove\'s Elm Actually',common:'Hoesholm elm',botanical:'Ulmus minor \'Hoersholmensis\'',addr:'56 Old Shoreham Rd, Hove BN3 6GF',w3w:'butter.scuba.begin',lat:50.836635,lng:-0.163654,note:'Died of Dutch elm disease'},
   {n:610,ch:11,town:'Hove',name:'Shirley Drive Zenith',common:'Wheatley Elm',botanical:'Ulmus minor \'Sarniensis\'',addr:'12 Rigden Rd, Hove BN3 6NP',w3w:'tree.heats.bells',lat:50.839977,lng:-0.165192},
   {n:611,ch:11,town:'Hove',name:'Interloper Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'Hove Park, 8 Woodland Dr, Hove BN3 7RA',w3w:'chase.grabs.noises',lat:50.844936,lng:-0.17485},
   {n:612,ch:11,town:'Shoreham By Sea',name:'SBS Chestnut',common:'Sweet Chestnut',botanical:'Castanea sativa',addr:'Buckingham Park, Shoreham-by-Sea BN43 6BX',w3w:'apparatus.landed.prune',lat:50.841648,lng:-0.267286},
@@ -859,7 +865,7 @@ const TREES = [
   {n:622,ch:12,town:'Oxford',name:'Remarkable Redwood',common:'Giant redwood',botanical:'Sequoiadendron giganteum',addr:'Natural History Museum',w3w:'waddled.cheek.stale',lat:51.758422,lng:-1.256298},
   {n:623,ch:12,town:'Oxford',name:'Principal\'s Horse Chestnut',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'Jesus College, Turl St, Oxford OX1 3DW',w3w:'took.fence.scars',lat:51.753787,lng:-1.256429},
   {n:624,ch:12,town:'Oxford',name:'Pomfret\'s Passion Tree',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'Lamb and Flag, Oxford OX1 3JS',w3w:'weep.aspect.daily',lat:51.757398,lng:-1.259},
-  {n:625,ch:12,town:'Oxford',name:'Tree',common:'Caucasian Zelkova',botanical:'Zelkova carpinifolia',addr:'Christ Church Meadow Walk, Oxford OX1 4JF',w3w:'cycles.commented.rides',lat:51.744246,lng:-1.249499},
+  {n:625,ch:12,town:'Oxford',name:'Tree',common:'Caucasian Zelkova',botanical:'Zelkova carpinifolia',addr:'Christ Church Meadow Walk, Oxford OX1 4JF',w3w:'cycles.commented.rides',lat:51.744246,lng:-1.249499,note:'Fell 2025'},
   {n:626,ch:12,town:'Oxford',name:'Pevsner\'s Sycamore',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Garden of All Souls, 3 Turl St, Oxford OX1 3DQ',w3w:'report.clubs.energy',lat:51.752843,lng:-1.252027},
   {n:627,ch:12,town:'Oxford',name:'Magdalen Plane',common:'London plane',botanical:'Platanus x hispanica',addr:'Magdalen College, Oxford OX1 4AU',w3w:'pits.coins.losses',lat:51.752736,lng:-1.246622},
   {n:628,ch:12,town:'Oxford',name:'Oxford Paperbark',common:'Paperbark maple',botanical:'Acer griseum',addr:'Oxford Botanic Garden, High Street, Oxford OX1 4AU',w3w:'device.behind.power',lat:51.751738,lng:-1.247712},
@@ -873,8 +879,8 @@ const TREES = [
   {n:636,ch:12,town:'Reading',name:'Thameside Swamp Cypress',common:'Swamp Cypress CHECK',botanical:'Taxodium distichum',addr:'The Boathouse, Richfield Ave, Reading RG1 8BD',w3w:'issued.trendy.vibes',lat:51.466756,lng:-0.980618},
   {n:637,ch:12,town:'Reading',name:'Odd One Out',common:'London Plane',botanical:'Platanus x hispanica',addr:'22 King\'s Meadow Rd, Reading RG1 8BN',w3w:'loops.chops.pump',lat:51.459856,lng:-0.966454},
   {n:638,ch:12,town:'Reading',name:'Office Mulberry',common:'Mulberry',botanical:'Morus nigra',addr:'Eldon Road, Reading RG1 4DJ',w3w:'herb.misty.puns',lat:51.453442,lng:-0.958528},
-  {n:639,ch:12,town:'Reading',name:'MERL Ash',common:'Pumpkin ash',botanical:'Fraxinus profunda',addr:'Museum of English Rural Life, 6 Redlands Road, Reading RG1 5EX',w3w:'nuns.dive.crib',lat:51.44886,lng:-0.960778},
-  {n:640,ch:12,town:'Reading',name:'Walk Wild Service Tree',common:'Wild Service Tree',botanical:'Torminaria torminalis',addr:'University of Reading, Whiteknights Rd, Earley, Reading RG6 7BY',w3w:'songs.skips.fonts',lat:51.444575,lng:-0.941264},
+  {n:639,ch:12,town:'Reading',name:'MERL Ash',common:'Pumpkin ash',botanical:'Fraxinus profunda',addr:'Museum of English Rural Life, 6 Redlands Road, Reading RG1 5EX',w3w:'nuns.dive.crib',lat:51.44886,lng:-0.960778,note:'Listed as Velvet ash, Fraxinus velutina, in the book'},
+  {n:640,ch:12,town:'Reading',name:'Walk Wild Service Tree',common:'Wild Service Tree',botanical:'Torminaria torminalis',addr:'University of Reading, Whiteknights Rd, Earley, Reading RG6 7BY',w3w:'songs.skips.fonts',lat:51.444575,lng:-0.941264,note:'Listed as Sorbus torminalis in the book'},
   {n:641,ch:12,town:'Reading',name:'Blandford’s Debatable Oak',common:'Cypress Oak',botanical:'Quercus robur \'Fastigiata\'',addr:'Harris Garden, 216 Pepper Ln, Earley, Reading RG6 5SH',w3w:'meals.duck.sparks',lat:51.436543,lng:-0.938322},
   {n:642,ch:12,town:'Reading',name:'Whiteknights Pear',common:'Oleaster-leaved Pear',botanical:'Pyrus elaeagrifolia',addr:'Among other trees near the Harris Garden, between the Lord Zuckerman Research Centre and Phillip Lyle Road, The Lord Zuckerman Research Centre, Earley, Reading RG6 6LA',w3w:'shirt.chops.amber',lat:51.438053,lng:-0.940918},
   {n:643,ch:12,town:'Reading',name:'Univesity Maple',common:'Cretan Maple',botanical:'Acer sempervirens',addr:'Whiteknights campus University of Reading, RG6 6UR',w3w:'shack.stuff.about',lat:51.440209,lng:-0.946629},
@@ -889,14 +895,14 @@ const TREES = [
   {n:652,ch:12,town:'Burchetts Green',name:'Not The Royal Oak',common:'Red Oak',botanical:'Quercus rubra',addr:'Burchetts Green, Maidenhead SL6 6QZ',w3w:'dodging.thinkers.ribcage',lat:51.525078,lng:-0.791688},
   {n:653,ch:12,town:'Gerrards Cross',name:'Iron Age Oak',common:'English Oaks',botanical:'Quercus robur',addr:'Gerrards Cross SL9 8SZ',w3w:'launch.bump.sketch',lat:51.581029,lng:-0.564148},
   {n:654,ch:12,town:'Windsor',name:'Windsor Weeping beech',common:'Weeping Beech',botanical:'Fagus sylvatica \'Pendula\'',addr:'St John the Baptist, High St, Windsor SL4 1LT',w3w:'',lat:0.0,lng:0.0},
-  {n:655,ch:12,town:'Windsor',name:'Ancient Tree Seeker Oak',common:'Pedunculate oak',botanical:'Quercus robur',addr:'Cranbourne Gate Car Park, Sheet Street Road, Windsor SL4 2BT',w3w:'pizza.passes.slide',lat:51.446542,lng:-0.635665},
+  {n:655,ch:12,town:'Windsor',name:'Ancient Tree Hunt Oak',common:'Pedunculate oak',botanical:'Quercus robur',addr:'Cranbourne Gate Car Park, Sheet Street Road, Windsor SL4 2BT',w3w:'pizza.passes.slide',lat:51.446542,lng:-0.635665},
   {n:656,ch:12,town:'Staines',name:'Ankerwycke Yew',common:'Yew',botanical:'Taxus baccata',addr:'Wraysbury, Staines TW19 5AD',w3w:'cave.army.remain',lat:51.444656,lng:-0.556659},
   {n:657,ch:12,town:'Bracknell',name:'Cul-de-Sac Chestnut',common:'Sweet Chestnut',botanical:'Castanea sativa',addr:'26 Julius Hill, Warfield, Bracknell RG42 3UN',w3w:'storm.patrol.voice',lat:51.421477,lng:-0.725922},
   {n:658,ch:12,town:'Crowthorne',name:'First Wellingtonia',common:'Giant Redwood',botanical:'Sequoiadendron giganteum',addr:'Wellingtonia Avenue, Finchampstead, Crowthorne RG45 6AE',w3w:'decreased.just.lock',lat:51.366362,lng:-0.82256},
   {n:659,ch:12,town:'Wokingham',name:'Waitrose Plane',common:'Oriental Plane',botanical:'Platanus orientalis',addr:'Rear of Montague House, Broad Street. A garden area behind railings adjacent to Waitrose car park., Rectory Rd, Wokingham RG40 1BB',w3w:'ritual.string.frame',lat:51.411829,lng:-0.835041},
   {n:660,ch:12,town:'Andover',name:'Chantry Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'High Street, Andover SP10 1NT',w3w:'going.rate.tune',lat:51.207916,lng:-1.479705},
   {n:661,ch:12,town:'Faringdon',name:'White\'s Yew',common:'Yew',botanical:'Taxus baccata',addr:'All Saints, Faringdon SN7 7HW',w3w:'gradually.slide.risking',lat:51.113586,lng:-0.984085},
-  {n:662,ch:12,town:'Winchester',name:'White\'s Yew',common:'Handkerchief Tree',botanical:'Davidia involucrata',addr:'The Broadway, Winchester SO23 9BE',w3w:'sway.policy.waking',lat:51.060923,lng:-1.309239},
+  {n:662,ch:12,town:'Winchester',name:'White\'s Yew',common:'Handkerchief Tree',botanical:'Davidia involucrata',addr:'The Broadway, Winchester SO23 9BE',w3w:'sway.policy.waking',lat:51.060923,lng:-1.309239,note:'Address listed incorrectly in the book as College St, Winchester SO23 9NA'},
   {n:663,ch:12,town:'Winchester',name:'Hillier\'s Walnut',common:'Cut leaf walnut',botanical:'Juglans regia \'Laciniata\'',addr:'Greenhill Cl, Winchester SO22 5DZ',w3w:'starch.families.lordship',lat:51.06405,lng:-1.331252},
   {n:664,ch:12,town:'Winchester',name:'Home Nursery Lime',common:'Oliver\'s Lime',botanical:'Tilia oliveri',addr:'Home Nursery Green, Nursery Gardens, Winchester SO22 5DT',w3w:'than.gazes.seashell',lat:51.062891,lng:-1.331295},
   {n:665,ch:12,town:'Winchester',name:'Dean\'s Magnolia',common:'Chinese Evergreen Magnolia',botanical:'Magnolia delavayi',addr:'The Cl, Winchester SO23 9LS',w3w:'quitter.joins.papers',lat:51.059737,lng:-1.313187},
@@ -905,7 +911,7 @@ const TREES = [
   {n:668,ch:12,town:'Portsmouth',name:'Sweeping Stone Pine',common:'Stone Pine',botanical:'Pinus pinea',addr:'Pembroke Park, Pier Rd, Southsea, Portsmouth, Southsea PO1 2TA',w3w:'crazy.chained.spoon',lat:50.787772,lng:-1.098495},
   {n:669,ch:12,town:'Portsmouth',name:'Southsea\'s Palm',common:'Canary Palm',botanical:'Phoenix canariensis',addr:'20-21 Clarence Parade, Southsea, Portsmouth, Southsea PO5 3NU',w3w:'cycles.woods.during',lat:50.780765,lng:-1.084933},
   {n:670,ch:12,town:'Southampton',name:'West End Giant',common:'Giant Redwood',botanical:'Sequoiadendron giganteum',addr:'50 Selborne Ave, Southampton SO18 5EB',w3w:'brave.boss.unique',lat:50.922151,lng:-1.34606},
-  {n:671,ch:12,town:'Southampton',name:'University Strawberry Tree',common:'Strawberry Tree',botanical:'Arbutus unedo',addr:'Hartley Ave, Highfield, Southampton SO17 3RA',w3w:'shades.shot.crate',lat:50.934711,lng:-1.392989},
+  {n:671,ch:12,town:'Southampton',name:'University Strawberry Tree',common:'Strawberry Tree',botanical:'Arbutus unedo',addr:'Hartley Ave, Highfield, Southampton SO17 3RA',w3w:'shades.shot.crate',lat:50.934711,lng:-1.392989,note:'Removed in University redevelopment.'},
   {n:672,ch:12,town:'Southampton',name:'Shirley Hackberry',common:'Nettle Tree',botanical:'Celtis australis',addr:'17 Grove Rd, Shirley, Southampton SO15 3HH',w3w:'itself.jungle.proof',lat:50.916599,lng:-1.428184},
   {n:673,ch:12,town:'Southampton',name:'Titanic Cork Oak',common:'Cork Oak',botanical:'Quercus suber',addr:'East Park, Above Bar Street, Southampton SO14 7DW',w3w:'wasp.kings.pass',lat:50.910374,lng:-1.404551},
   {n:674,ch:12,town:'Southampton',name:'Curly-Wurly Mulberry',common:'Mulberry',botanical:'Morus nigra',addr:'Watts Park, 21 Cumberland Pl, Southampton SO15 2BB',w3w:'rice.hotels.lovely',lat:50.909134,lng:-1.406517},
@@ -941,7 +947,7 @@ const TREES = [
   {n:704,ch:13,town:'Bristol',name:'Queen Square Nonpareil',common:'London Plane',botanical:'Platanus x hispanica',addr:'Queen\'s Square',w3w:'cafe.filled.wakes',lat:51.451043,lng:-2.594907},
   {n:705,ch:13,town:'Bristol',name:'Bristol Bridge Fig',common:'Fig',botanical:'Ficus carica',addr:'Bristol Bridge, Victoria St, Bristol BS1 6DT',w3w:'tame.loans.vanish',lat:51.454223,lng:-2.590927},
   {n:706,ch:13,town:'Bristol',name:'Retiring Ironwood',common:'Persian Ironwood',botanical:'Parottia persica',addr:'Wills building, Queens Rd, Bristol BS8 1QE',w3w:'crass.silks.tips',lat:51.456029,lng:-2.603647},
-  {n:707,ch:13,town:'Bristol',name:'Bristol\'s Whitebeam',common:'Bristol Whitebeam',botanical:'Karpatiosorbus bristoliensis',addr:'Arts and Social Sciences Library, Bristol BS8 1TJ',w3w:'open.unable.churn',lat:51.459883,lng:-2.601243},
+  {n:707,ch:13,town:'Bristol',name:'Bristol\'s Whitebeam',common:'Bristol Whitebeam',botanical:'Karpatiosorbus bristoliensis',addr:'Arts and Social Sciences Library, Bristol BS8 1TJ',w3w:'open.unable.churn',lat:51.459883,lng:-2.601243,note:'Listed as Sorbus bristoliensis in the book'},
   {n:708,ch:13,town:'Bristol',name:'Highbury Vaults Bee-bee tree',common:'Bee-bee Tree',botanical:'Tetradium daniellii',addr:'Highbury Vaults, 164 St Michael’s Hill, BS2 8DE',w3w:'digit.logs.drive',lat:51.461446,lng:-2.602413},
   {n:709,ch:13,town:'Bristol',name:'Clifton Enigma',common:'Italian Maple',botanical:'Acer opalus',addr:'Victoria Square, Clifton, Bristol BS8 4EW',w3w:'relate.veal.solved',lat:51.455652,lng:-2.61546},
   {n:710,ch:13,town:'Bristol',name:'Elephant Holm Oak',common:'Holm Oak',botanical:'Quercus ilex',addr:'Cnr Pembroke Vale, and Pembroke Road, BS8 3EA',w3w:'never.radar.rank',lat:51.461392,lng:-2.616273},
@@ -956,10 +962,10 @@ const TREES = [
   {n:719,ch:13,town:'Bath',name:'Henrietta Spaethii',common:'Purple Sycamore',botanical:'Acer pseudoplatanus \'Spaethii\'',addr:'Henrietta Park, Henrietta Rd, Bathwick, Bath BA2 6LY',w3w:'renew.admiral.agree',lat:51.385794,lng:-2.355139},
   {n:720,ch:13,town:'Bath',name:'Temple of Minerva Catalpa',common:'Yellow catalpa',botanical:'Catalpa ovata',addr:'Sydney Gardens, Sydney Pl, Bathwick, Bath BA2 6NH',w3w:'rust.golf.tested',lat:51.386468,lng:-2.349391},
   {n:721,ch:13,town:'Bath',name:'Abbey Green Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'Abbey Green, Bath BA1 1NW',w3w:'slam.backup.sentences',lat:51.380565,lng:-2.358683},
-  {n:722,ch:13,town:'Bath',name:'North Parade Box Elder',common:'Box Elder',botanical:'Acer negundo',addr:'North Parade Buildings, Bath BA1 1LN',w3w:'kicks.liver.ticket',lat:51.380323,lng:-2.358208},
+  {n:722,ch:13,town:'Bath',name:'North Parade Box Elder',common:'Box Elder',botanical:'Acer negundo',addr:'North Parade Buildings, Bath BA1 1LN',w3w:'kicks.liver.ticket',lat:51.380323,lng:-2.358208,note:'Damaged by Storm Claudia on 14th Nov 2025 and now removed from site. New tree planted in its place.'},
   {n:723,ch:13,town:'Bath',name:'Holloway Judas Tree',common:'Judas Tree',botanical:'Cercis siliquastrum',addr:'Chapel of St Mary Magdalen, Holloway, Bath BA2 4PX',w3w:'region.locals.cheeks',lat:51.375822,lng:-2.364389},
   {n:724,ch:13,town:'Bradford-on-Avon',name:'Westbury Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'50 St Margaret\'s St, Bradford-on-Avon BA15 1DE',w3w:'planet.texted.squashes',lat:51.346903,lng:-2.251576},
-  {n:725,ch:13,town:'Swindon',name:'Kiwi Tree',common:'Golden Totara',botanical:'Podocarpus totara \'Aureus\'',addr:'Queens Park, 160 Drove Rd, Swindon SN1 3AG',w3w:'later.player.shot',lat:51.55777,lng:-1.775126},
+  {n:725,ch:13,town:'Swindon',name:'Kiwi Tree',common:'Golden Totara',botanical:'Podocarpus totara \'Aureus\'',addr:'Queens Park, 160 Drove Rd, Swindon SN1 3AG',w3w:'later.player.shot',lat:51.55777,lng:-1.775126,note:'Removed in 2025'},
   {n:726,ch:13,town:'Swindon',name:'Town Gardens Handkerchief Tree',common:'Handkerchief Tree',botanical:'Davidia involucrata',addr:'Town Gardens, Quarry Rd, Swindon SN1 4EN',w3w:'bleak.appeal.lungs',lat:51.550871,lng:-1.782366},
   {n:727,ch:13,town:'Swindon',name:'Old Town Copper Beech',common:'Copper Beech',botanical:'Fagus sylvatica \'Purpurea\'',addr:'Swindon Museum and Art Gallery, Bath Rd, Swindon SN1 4BA',w3w:'never.casual.merit',lat:51.552595,lng:-1.777901},
   {n:728,ch:13,town:'Marlborough',name:'Big Belly',common:'Sessile Oak',botanical:'Quercus petraea',addr:'Savernake, Marlborough SN8 4NE',w3w:'yachting.constrain.universally',lat:51.390699,lng:-1.694913},
@@ -979,7 +985,7 @@ const TREES = [
   {n:742,ch:13,town:'Sherborne',name:'Veitch\'s Swamp Cypress',common:'Swamp cypress',botanical:'Taxodium distichum',addr:'Pageant Gardens, Station Road, Sherborne DT9 3NQ',w3w:'keys.aliens.rushed',lat:50.944278,lng:-2.514138},
   {n:743,ch:13,town:'Yeovil',name:'Stink Bomb',common:'Ginkgo',botanical:'Ginkgo biloba',addr:'114 Hendford Hill, Yeovil BA20 2RF',w3w:'files.cattle.update',lat:50.93498,lng:-2.640251},
   {n:744,ch:13,town:'Stoke-sub-Hamdon',name:'Holy Tree',common:'Giant Redwood',botanical:'Sequoiadendron giganteum',addr:'80-76 West St, Stoke-sub-Hamdon TA14 6QL',w3w:'snowballs.towels.hatter',lat:50.948051,lng:-2.77047},
-  {n:745,ch:13,town:'Taunton',name:'French Fancy',common:'Bauman\'s Horse Chestnut',botanical:'Aesculus hippocastanum \'Baumanii\'',addr:'French Weir Park, 15 Northfield Ave, Taunton TA1 1XF',w3w:'hardly.brush.cheese',lat:51.017855,lng:-3.111261},
+  {n:745,ch:13,town:'Taunton',name:'French Fancy',common:'Bauman\'s Horse Chestnut',botanical:'Aesculus hippocastanum \'Baumanii\'',addr:'French Weir Park, 15 Northfield Ave, Taunton TA1 1XF',w3w:'hardly.brush.cheese',lat:51.017855,lng:-3.111261,note:'Cut back very hard'},
   {n:746,ch:13,town:'Ashbrittle',name:'Ashbrittle Yew',common:'Yew',botanical:'Taxus baccata',addr:'St John the Baptist, Ashbrittle, Wellington TA21 0LF',w3w:'hangs.emotional.overpower',lat:50.983735,lng:-3.351554},
   {n:747,ch:13,town:'Bridgwater',name:'Parrett Oak',common:'Holm Oak',botanical:'Quercus ilex',addr:'Blake Gardens, 8 Binford Pl, Bridgwater TA6 3LF',w3w:'powers.glows.website',lat:51.12752,lng:-3.000623},
   {n:748,ch:13,town:'Compton Dundon',name:'Repairing Tree',common:'Yew',botanical:'Taxus baccata',addr:'St Andrew\'s, Peak Ln, Compton Dundon, Somerton TA11 6PE',w3w:'flash.hospitals.skinning',lat:51.089546,lng:-2.744695},
@@ -997,8 +1003,8 @@ const TREES = [
   {n:760,ch:14,town:'Exeter',name:'Southernhay Hybrid',common:'Veitch\'s magnolia',botanical:'Magnolia x veitchii \'Peter Veitch\'',addr:'Southernhay Gardens, Exeter EX1 1JG',w3w:'fact.roofs.humble',lat:50.721822,lng:-3.527032},
   {n:761,ch:14,town:'Exeter',name:'Coaver Club Tree',common:'Exeter Elm',botanical:'Ulmus glabra \'Exoniensis\'',addr:'Coaver Club, Matford Lane, Exeter EX2 4PS',w3w:'riches.holds.wires',lat:50.715408,lng:-3.518469},
   {n:762,ch:14,town:'Kenn',name:'Kenn Yew',common:'Yew',botanical:'Taxus baccata',addr:'3 Mill Cottages, Kenn, Exeter EX6 7UR',w3w:'walked.under.hasten',lat:50.660751,lng:-3.526339},
-  {n:763,ch:14,town:'Exmouth',name:'Phear Giant',common:'Lucombe oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Phear Park, Withycombe Village Rd, Exmouth EX8 1TJ',w3w:'saving.launch.backup',lat:50.624717,lng:-3.40539},
-  {n:764,ch:14,town:'Torquay',name:'Two Parks Behemoth',common:'Red Oak',botanical:'Quercus rubra',addr:'Two Parks, St Agnes Ln, Torquay TQ2 6QE',w3w:'birthing.dads.loudness',lat:50.461096,lng:-3.545164},
+  {n:763,ch:14,town:'Exmouth',name:'Phear Giant',common:'Lucombe oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Phear Park, Withycombe Village Rd, Exmouth EX8 1TJ',w3w:'saving.launch.backup',lat:50.624717,lng:-3.40539,note:'Long gone'},
+  {n:764,ch:14,town:'Torquay',name:'Two Parks Behemoth',common:'Red Oak',botanical:'Quercus rubra',addr:'Two Parks, St Agnes Ln, Torquay TQ2 6QE',w3w:'birthing.dads.loudness',lat:50.461096,lng:-3.545164,note:'Fell in storm early 2025'},
   {n:765,ch:14,town:'Torquay',name:'Riviera Palm',common:'Canary Palm',botanical:'Phoenix canariensis',addr:'Torbay Rd, Torquay TQ2 5HA',w3w:'paid.shield.test',lat:50.462282,lng:-3.538933},
   {n:766,ch:14,town:'Torquay',name:'Torre Oak',common:'Pedunculate oak',botanical:'Quercus robur',addr:'23 Brunel Ave, Torquay TQ2 8NW',w3w:'paid.shield.test',lat:50.462282,lng:-3.538933},
   {n:767,ch:14,town:'Torquay',name:'Platform 2 Monkey Puzzle',common:'Monkey Puzzle',botanical:'Araucaria araucana',addr:'Torquay Station, Solsbro Rd, Torquay TQ2 6FD',w3w:'regrowth.buzzer.waters',lat:50.460557,lng:-3.543341},
@@ -1011,7 +1017,7 @@ const TREES = [
   {n:774,ch:14,town:'Plymouth',name:'Sycamore Wall',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'Saltram, Plympton, Plymouth PL7 1UH',w3w:'become.bucket.skills',lat:50.38035,lng:-4.080013},
   {n:775,ch:14,town:'Plymouth',name:'Doubletake Leylandii',common:'Leyland Cypress',botanical:'×Cupressocyparis leylandii',addr:'Radford Park, Plymstock, Plymouth PL9 7NZ',w3w:'soak.wishes.mole',lat:50.355824,lng:-4.101399},
   {n:776,ch:14,town:'Plymouth',name:'Widey Oak',common:'Pedunculate oak',botanical:'Quercus robur',addr:'Widey Wood, 53 Widey Ln, Plymouth PL6 5JS',w3w:'flops.libraries.pasta',lat:50.403797,lng:-4.127982},
-  {n:777,ch:14,town:'Plymouth',name:'Widey Big Tree',common:'Lucombe Oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Widey Woods, Widey Lane, Plymouth PL6 5JS',w3w:'began.learns.cups',lat:50.403178,lng:-4.128321},
+  {n:777,ch:14,town:'Plymouth',name:'Widey Big Tree',common:'Lucombe Oak',botanical:'Quercus x crenata \'Lucombeana\'',addr:'Widey Woods, Widey Lane, Plymouth PL6 5JS',w3w:'began.learns.cups',lat:50.403178,lng:-4.128321,note:'Fell in storm, November 2024. Riddled with honey fungus, the fallen tree has been left to provide habitat.'},
   {n:778,ch:14,town:'Plymouth',name:'Alleyway Judas Tree',common:'Judas Tree',botanical:'Cercis silliquastrum',addr:'Thorn Park, Plymouth PL3 4TG',w3w:'insist.vivid.gained',lat:50.388705,lng:-4.131451},
   {n:779,ch:14,town:'Plymouth',name:'Unknown Quantity',common:'Ginkgo',botanical:'Ginkgo biloba',addr:'Thorn Park, Plymouth PL3 4ST',w3w:'bridge.yoga.canny',lat:50.387627,lng:-4.132382},
   {n:780,ch:14,town:'Plymouth',name:'Mutley Magnolia',common:'Kobus Magnolia',botanical:'Magnolia kobusi',addr:'Mutley Park, Oxford Ave, Plymouth PL3 4SQ',w3w:'flames.thinks.maybe',lat:50.387869,lng:-4.134412},
@@ -1039,7 +1045,7 @@ const TREES = [
   {n:802,ch:14,town:'Penzance',name:'PZ Palm',common:'Canary Palm',botanical:'Phoenix canariensis',addr:'Penzance Railway Station, Station Road, Penzance TR18 2NF',w3w:'monk.gave.lyricist',lat:50.121591,lng:-5.532648},
   {n:803,ch:14,town:'Penzance',name:'Morrab Totara',common:'Totara',botanical:'Podocarpus totara',addr:'Morrab Gardens, Morrab Rd, Penzance TR18 4HD',w3w:'crank.items.blur',lat:50.116362,lng:-5.536895},
   {n:804,ch:14,town:'Penzance',name:'Penlee Gum',common:'Blue Gum',botanical:'Eucalyptus globulus',addr:'Penlee Park, Penzance TR18 4HY',w3w:'purely.vessel.twins',lat:50.116605,lng:-5.539333},
-  {n:805,ch:14,town:'Penzance',name:'Wherrytown Cherry',common:'Shirotae\' cherry',botanical:'Prunus \'Shirotae\'',addr:'Mann\'s Field, Lariggan Road, Penzance TR18 4NJ',w3w:'gosh.advising.parading',lat:50.111268,lng:-5.545262},
+  {n:805,ch:14,town:'Penzance',name:'Wherrytown Cherry',common:'Shirotae\' cherry',botanical:'Prunus \'Shirotae\'',addr:'Mann\'s Field, Lariggan Road, Penzance TR18 4NJ',w3w:'gosh.advising.parading',lat:50.111268,lng:-5.545262,note:'Took on a significant lean following a storm in 2025.'},
   {n:806,ch:15,town:'Llandovery',name:'College Chestnut',common:'Sweet chestnut',botanical:'Castanea sativa',addr:'Llandovery College, Queensway, Llandovery SA20 0EE',w3w:'bluff.cycled.brass',lat:51.994758,lng:-3.800311},
   {n:807,ch:15,town:'Abergavenny',name:'Linda Vista Plane',common:'London Plane',botanical:'Platanus x hispanica',addr:'Linda Vista Gardens, Abergavenny NP7 5DL',w3w:'totals.polka.models',lat:51.821111,lng:-3.023364},
   {n:808,ch:15,town:'Abergavenny',name:'Tennis Plane',common:'Oriental plane',botanical:'Platanus orientalis',addr:'Hill Rd, Abergavenny NP7 7RN',w3w:'refilled.snips.baseless',lat:51.828981,lng:-3.022971},
@@ -1085,7 +1091,7 @@ const TREES = [
   {n:848,ch:15,town:'Swansea',name:'Brynmill Pine',common:'Monterey Pine',botanical:'Pinus radiata',addr:'Brynmill Park, Brynmill, Swansea SA2 0JQ',w3w:'universally.curl.groom',lat:51.616147,lng:-3.972678},
   {n:849,ch:15,town:'Swansea',name:'Gargantuan Tepa',common:'Tepa',botanical:'Laureliopsis philippiana',addr:'Singleton Abbey, Sketty, Swansea SA2 8PW',w3w:'cliff.last.basket',lat:51.611268,lng:-3.977148},
   {n:850,ch:15,town:'Swansea',name:'Entanglement Oak',common:'Holm Oak',botanical:'Quercus ilex',addr:'Singleton Abbey, Sketty, Swansea SA2 8PW',w3w:'closet.player.farms',lat:51.610918,lng:-3.977886},
-  {n:851,ch:15,town:'Swansea',name:'Botanical Spinning Gum',common:'Spinning Gum',botanical:'Eucalyptus perriniana',addr:'Botanic Gardens, Singleton Park, Sketty, Swansea SA2 8PW',w3w:'muddy.draw.villa',lat:51.614826,lng:-3.981923},
+  {n:851,ch:15,town:'Swansea',name:'Botanical Spinning Gum',common:'Spinning Gum',botanical:'Eucalyptus perriniana',addr:'Botanic Gardens, Singleton Park, Sketty, Swansea SA2 8PW',w3w:'muddy.draw.villa',lat:51.614826,lng:-3.981923,note:'Fell in storm 2025'},
   {n:852,ch:15,town:'Swansea',name:'Bryn Tulip Tree',common:'Tulip Tree',botanical:'Liriodendron tulipifera',addr:'The Bryn, Sketty, Swansea SA2 8DF',w3w:'smug.pilots.discouraged',lat:51.611915,lng:-3.992513},
   {n:853,ch:15,town:'Swansea',name:'Twins of Sketty',common:'Dawn redwood',botanical:'Metasequoia glyptostroboides',addr:'Sketty, Swansea SA2 8DF',w3w:'hill.given.dream',lat:51.611592,lng:-3.992166},
   {n:854,ch:15,town:'Swansea',name:'Lido Elms',common:'Wheatley Elm',botanical:'Ulmus minor ‘Sarniensis’',addr:'Mumbles Rd, Blackpill, Swansea SA3 5AS',w3w:'bowls.today.offer',lat:51.596876,lng:-3.994987},
@@ -1104,7 +1110,7 @@ const TREES = [
   {n:867,ch:16,town:'Mold',name:'Greenside Sycamore',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'23 Greenside, Mold CH7 1TN',w3w:'bulge.starts.swan',lat:53.16474,lng:-3.150058},
   {n:868,ch:16,town:'Capel-Curig',name:'Bryn Tyrch Pine',common:'Scots Pine',botanical:'Pinus sylvestris',addr:'Bryn Tyrch Inn, Capel Curig LL24 0EL',w3w:'partners.barks.sandpaper',lat:53.102644,lng:-3.906677},
   {n:869,ch:16,town:'Betws-y-Coed',name:'Betws-y-Coed Muse',common:'Oak',botanical:'Quercus robur',addr:'Royal Oak Stables, Betws-y-Coed LL24 0AH',w3w:'bedding.masses.tilting',lat:53.092834,lng:-3.801791},
-  {n:870,ch:16,town:'Betws-y-Coed',name:'Betws Giant',common:'Western Red Cedar',botanical:'Thuja plicata',addr:'St Mary\'s church, Holyhead Rd, Betws-y-Coed LL24 0AA',w3w:'spine.overdone.permit',lat:53.091783,lng:-3.802914},
+  {n:870,ch:16,town:'Betws-y-Coed',name:'Betws Giant',common:'Western Red Cedar',botanical:'Thuja plicata',addr:'St Mary\'s church, Holyhead Rd, Betws-y-Coed LL24 0AA',w3w:'spine.overdone.permit',lat:53.091783,lng:-3.802914,note:'Listed as Lawson cypress, Chamaecyparis lawsoniana, in the book'},
   {n:871,ch:16,town:'Pentrefoelas',name:'Afon Merddwr Chestnut',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'Pentrefoelas, Betws-y-Coed LL24 0HT',w3w:'scrubbing.vipers.plug',lat:53.048661,lng:-3.683194},
   {n:872,ch:16,town:'Beddgelert',name:'Atlantic Forest Remnant',common:'Oak',botanical:'Quercus robur',addr:'Caernarfon Rd, Beddgelert, Caernarfon LL55 4UY',w3w:'assembles.configure.masking',lat:53.012276,lng:-4.105871},
   {n:873,ch:16,town:'Gresford',name:'Wondrous Yew',common:'Yew',botanical:'Taxus baccata',addr:'All Saints, The Green, Gresford, Wrexham LL12 8RG',w3w:'brochure.solved.efficient',lat:53.087848,lng:-2.976765},
@@ -1141,7 +1147,7 @@ const TREES = [
   {n:904,ch:17,town:'Belfast',name:'Medicine Tree',common:'Oriental plane',botanical:'Platanus orientalis',addr:'Within Belfast City Hospital, Lisburn Rd, Belfast BT9 7AB',w3w:'tiny.admits.shirts',lat:54.586284,lng:-5.94425},
   {n:905,ch:17,town:'Belfast',name:'QUB Roble',common:'Roble',botanical:'Nothofagus obliqua',addr:'Chlorine Gardens, Belfast BT9 5AH',w3w:'them.rich.sports',lat:54.579843,lng:-5.935617},
   {n:906,ch:17,town:'Belfast',name:'Sandy Row Fairy Thorn',common:'Hawthorn',botanical:'Crataegus monogyna',addr:'Blythe Street, Belfast BT12 5HX',w3w:'export.camp.nurse',lat:54.590785,lng:-5.941178},
-  {n:907,ch:17,town:'Belfast',name:'Inst Cherry',common:'Double flowering cherry',botanical:'Prunus avium \'Plena\'',addr:'Royal Belfast Academical Institution, College Square East, Belfast BT1 6DL',w3w:'newest.dame.issue',lat:54.597038,lng:-5.935452},
+  {n:907,ch:17,town:'Belfast',name:'Inst Cherry',common:'Double flowering cherry',botanical:'Prunus avium \'Plena\'',addr:'Royal Belfast Academical Institution, College Square East, Belfast BT1 6DL',w3w:'newest.dame.issue',lat:54.597038,lng:-5.935452,note:'Removed'},
   {n:908,ch:17,town:'Belfast',name:'Seamus Heaney\'s Tree',common:'Small-leaved lime',botanical:'Tilia cordata \'Greenspire\'',addr:'Linen Hall Library, 17 Donegall Square N, Belfast BT1 5GB',w3w:'thus.agents.sting',lat:54.597335,lng:-5.931541},
   {n:909,ch:17,town:'Belfast',name:'Replacement Tree',common:'Chanticeer Pears',botanical:'Pyrus calleryana \'Chanticleer\'',addr:'15 Cupar Way, Belfast BT13 2RX',w3w:'badge.hogs.gaps',lat:54.601242,lng:-5.957332},
   {n:910,ch:17,town:'Belfast',name:'The Peace Tree',common:'Hybrid oak',botanical:'Quercus x rosacea',addr:'Woodvale Park, Belfast BT13 3HY',w3w:'having.bucket.faded',lat:54.607145,lng:-5.965666},
@@ -1183,7 +1189,7 @@ const TREES = [
   {n:946,ch:18,town:'Dublin',name:'Michael Collin\'s Plane',common:'Oriental plane',botanical:'Platanus orientalis',addr:'1 Merrion Square E, Dublin, Ireland',w3w:'hurray.feel.branded',lat:53.3396,lng:-6.247221},
   {n:947,ch:18,town:'Dublin',name:'Baggot Street Herald',common:'Honey Locust',botanical:'Gleditsia tricanthos',addr:'Baggot Street Lower, Dublin 2, , D02 YC83',w3w:'reward.clues.shelf',lat:53.337605,lng:-6.251378},
   {n:948,ch:18,town:'Dublin',name:'Famine Memorial Ash',common:'Weeping Ash',botanical:'Fraxinus excelsior \'Pendula\'',addr:'St Stephen\'s Green, Dublin 2, D02 K224',w3w:'dices.artist.deeper',lat:53.338306,lng:-6.25653},
-  {n:949,ch:18,town:'Dublin',name:'Secret Pendant Lime',common:'Silver Pendant Lime',botanical:'Tilia tomentosa \'Petiolaris\'',addr:'Iveagh Gardens, Dublin 2, D02 HX65',w3w:'fool.likes.trash',lat:53.334182,lng:-6.260462},
+  {n:949,ch:18,town:'Dublin',name:'Secret Pendant Lime',common:'Silver Pendant Lime',botanical:'Tilia tomentosa \'Petiolaris\'',addr:'Iveagh Gardens, Dublin 2, D02 HX65',w3w:'fool.likes.trash',lat:53.334182,lng:-6.260462,note:'Removed, early 2026'},
   {n:950,ch:18,town:'Dublin',name:'Ranelagh Turkey Oak',common:'Turkey oak',botanical:'Quercus cerris',addr:'Dartmouth Square, Dublin 6, D06 XH33',w3w:'slips.under.moment',lat:53.330194,lng:-6.254943},
   {n:951,ch:18,town:'Dublin',name:'Lansdowne Strawberry Tree',common:'hybrid strawberry tree',botanical:'Arbutus x andrachnoides',addr:'Shelbourne Road, Dublin 4, D04 H662',w3w:'social.mutual.cowboy',lat:53.33332,lng:-6.231785},
   {n:952,ch:18,town:'Dublin',name:'Vintage Chestnut',common:'Horse Chestnut',botanical:'Aesculus hippocastanum',addr:'Herbert Park, 8-10 Clyde Lane, Dublin 4, D04 A782',w3w:'groom.beard.flap',lat:53.328064,lng:-6.236119},
@@ -1195,8 +1201,8 @@ const TREES = [
   {n:958,ch:18,town:'Galway',name:'Corrib Fig',common:'Fig',botanical:'Ficus carica',addr:'Waterside, Woodquay, Galway, H91 DK58, Ireland',w3w:'asserts.leap.vague',lat:53.275536,lng:-9.055398},
   {n:959,ch:18,town:'Galway',name:'St Nicholas\'s Elm',common:'Tabletop elm',botanical:'Ulmus glabra \'Horizontalis\'',addr:'St. Nicholas Collegiate Church, Lombard St, Galway, H91 PY20, Ireland',w3w:'belly.pocket.stores',lat:53.272626,lng:-9.054225},
   {n:960,ch:18,town:'Galway',name:'Young Turk',common:'Turkey Oak',botanical:'Quercus cerris',addr:'Eyre Square, Galway, H91 TH7T',w3w:'plug.tulip.sculpture',lat:53.273731,lng:-9.048994},
-  {n:961,ch:18,town:'Birr',name:'Birr Burry Trees',common:'Oriental plane',botanical:'Platanus orientalis',addr:'John\'s Place, Birr, Co. Offaly, R42 PW61',w3w:'ogre.shortens.wangle',lat:53.09569,lng:-7.908562},
-  {n:962,ch:18,town:'Birr',name:'Birr Burry Trees',common:'Oriental plane',botanical:'Platanus orientalis',addr:'John\'s Place, Birr, Co. Offaly, R42 PW62',w3w:'ogre.shortens.wangle',lat:53.09569,lng:-7.908562},
+  {n:961,ch:18,town:'Birr',name:'Birr Burry Trees',common:'Oriental plane',botanical:'Platanus orientalis',addr:'John\'s Place, Birr, Co. Offaly, R42 PW61',w3w:'ogre.shortens.wangle',lat:53.09569,lng:-7.908562,note:'Listed as Platanus x hispanica \'Western Baobab\' in the book'},
+  {n:962,ch:18,town:'Birr',name:'Birr Burry Trees',common:'Oriental plane',botanical:'Platanus orientalis',addr:'John\'s Place, Birr, Co. Offaly, R42 PW62',w3w:'ogre.shortens.wangle',lat:53.09569,lng:-7.908562,note:'Listed as Platanus x hispanica \'Western Baobab\' in the book'},
   {n:963,ch:18,town:'Limerick',name:'Cathedral Holm Oak',common:'Holm Oak',botanical:'Quercus ilex',addr:'St Mary\'s Cathedral, Bridge Street, Limerick, V94 E068',w3w:'dent.quite.pads',lat:52.66792,lng:-8.623377},
   {n:964,ch:18,town:'Limerick',name:'People\'s Birch',common:'Paper Birch',botanical:'Betula papyrifera',addr:'People\'s Park, Pery Square, Limerick, V94 E67F',w3w:'yoga.shall.vibes',lat:52.658164,lng:-8.62671},
   {n:965,ch:18,town:'Limerick',name:'Limerick Copper Beech',common:'Copper beech',botanical:'Fagus sylvatica \'Purpurea\'',addr:'People\'s Museum of Limerick, 2 Pery Square, Limerick, V94 HF53',w3w:'pace.gifted.spots',lat:52.658568,lng:-8.628976},
@@ -1335,12 +1341,15 @@ function render() {
     const isF = !!found[t.n];
     const distTxt = (view==='nearby'&&t._dist<9999) ? `${t._dist.toFixed(1)} km · ` : '';
     const dateTxt = isF&&found[t.n].date ? `<div class="tree-found-date">✓ Found ${found[t.n].date}</div>` : '';
-    return `<div class="tree-card${isF?' found':''}" onclick="openTree(${t.n})">
+    const isGone = t.note && /removed|fell|felled|dead|died|gone/i.test(t.note);
+    const hasNote = !!t.note;
+    const noteIcon = isGone ? ' ⚠️' : hasNote ? ' 📝' : '';
+    return `<div class="tree-card${isF?' found':''}${isGone?' gone':''}" onclick="openTree(${t.n})">
       <button class="check-ring" onclick="event.stopPropagation();toggle(${t.n})" aria-label="Toggle found">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </button>
       <div class="tree-body">
-        <div class="tree-name">${t.name}</div>
+        <div class="tree-name">${t.name}${noteIcon}</div>
         <div class="tree-sub">${distTxt}#${t.n} · ${t.town} · ${t.common}</div>
         ${dateTxt}
       </div>
@@ -1370,6 +1379,7 @@ function openTree(n) {
       <div class="modal-row"><span class="modal-row-lbl">Address</span><span class="modal-row-val">${t.addr}</span></div>
       ${t.w3w?`<div class="modal-row"><span class="modal-row-lbl">What3Words</span><span class="modal-row-val"><a href="${w3wUrl}" style="color:var(--leaf);text-decoration:none">///&#8202;${t.w3w}</a></span></div>`:''}
       ${isF&&found[n].date?`<div class="modal-row"><span class="modal-row-lbl">Found</span><span class="modal-row-val" style="color:var(--found-text)">${found[n].date}</span></div>`:''}
+      ${t.note?`<div class="modal-row"><span class="modal-row-lbl">Note</span><span class="modal-row-val"><span class="note-banner ${/removed|fell|felled|dead|died|gone/i.test(t.note)?'gone':'warning'}">${t.note}</span></span></div>`:''}
     </div>
     <div class="modal-actions">
       <button class="btn-found${isF?' is-found':''}" onclick="toggle(${n})">${isF?'✓ Unmark':'Mark as found ✓'}</button>
@@ -1459,7 +1469,8 @@ function initMap() {
   TREES.forEach(t => {
     if(!t.lat || !t.lng) return;
     const isF = !!found[t.n];
-    const marker = L.marker([t.lat, t.lng], {icon: treeIcon(isF)})
+    const isGone = t.note && /removed|fell|felled|dead|died|gone/i.test(t.note);
+    const marker = L.marker([t.lat, t.lng], {icon: treeIcon(isF, isGone)})
       .addTo(leafletMap)
       .bindPopup(() => makePopup(t.n), {maxWidth: 240, className: 'tree-popup'});
     markers[t.n] = marker;
@@ -1501,7 +1512,9 @@ function toggleFromMap(n) {
   toggle(n);
   // refresh this marker style
   if(markers[n]) {
-    markers[n].setIcon(treeIcon(!!found[n]));
+    const tg = TREES.find(x=>x.n===n);
+    const tgGone = tg && tg.note && /removed|fell|felled|dead|died|gone/i.test(tg.note);
+    markers[n].setIcon(treeIcon(!!found[n], tgGone));
     markers[n].closePopup();
     setTimeout(() => markers[n].openPopup(), 50);
   }
@@ -1509,7 +1522,9 @@ function toggleFromMap(n) {
 
 function refreshMarkers() {
   Object.entries(markers).forEach(([n, marker]) => {
-    marker.setIcon(treeIcon(!!found[parseInt(n)]));
+    const tt = TREES.find(x=>x.n===parseInt(n));
+    const tGone = tt && tt.note && /removed|fell|felled|dead|died|gone/i.test(tt.note);
+    marker.setIcon(treeIcon(!!found[parseInt(n)], tGone));
   });
 }
 
