@@ -1477,12 +1477,13 @@ function initMap() {
   });
 }
 
-function treeIcon(isFound) {
-  const color = isFound ? '#5a8a3a' : '#9a9a8a';
-  const stroke = isFound ? '#2d4a1a' : '#666656';
+function treeIcon(isFound, isGone) {
+  const color = isFound ? '#5a8a3a' : isGone ? '#c0392b' : '#9a9a8a';
+  const stroke = isFound ? '#2d4a1a' : isGone ? '#7a1a1a' : '#666656';
+  const highlight = isFound ? '#7ab55a' : isGone ? '#e74c3c' : '#b0b0a0';
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="34" viewBox="0 0 28 34">
     <ellipse cx="14" cy="13" rx="11" ry="10" fill="${color}" stroke="${stroke}" stroke-width="1.5"/>
-    <ellipse cx="14" cy="10" rx="8" ry="7" fill="${isFound ? '#7ab55a' : '#b0b0a0'}" opacity="0.5"/>
+    <ellipse cx="14" cy="10" rx="8" ry="7" fill="${highlight}" opacity="0.5"/>
     <rect x="11.5" y="22" width="5" height="10" rx="2" fill="${stroke}"/>
   </svg>`;
   return L.divIcon({
