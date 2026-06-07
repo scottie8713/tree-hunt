@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Tree Seeker"/>
 <title>Tree Seeker</title>
-<link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="icon-192.svg"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./icon-192.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -1549,7 +1549,7 @@ function removePhoto(n) {
   if(found[n]) { delete found[n].photo; save(); openTree(n); }
 }
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js', {scope: './'}).catch(()=>{});
 render();
 </script>
 </body>
