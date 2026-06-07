@@ -179,7 +179,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 <div class="controls">
   <div class="search-wrap">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="search" id="search" placeholder="Name, town, species…" oninput="render()" autocomplete="off" spellcheck="false"/>
+    <input type="search" id="search" placeholder="Name, #number, town, species…" oninput="render()" autocomplete="off" spellcheck="false"/>
   </div>
   <div class="filter-row" id="filter-row"></div>
 </div>
@@ -1274,7 +1274,7 @@ function setView(v, btn) {
 function render() {
   const q = document.getElementById('search').value.toLowerCase().trim();
   let trees = TREES.filter(t => {
-    if(q && !`${t.name} ${t.town} ${t.common} ${t.botanical}`.toLowerCase().includes(q)) return false;
+    if(q && !`${t.n} ${t.name} ${t.town} ${t.common} ${t.botanical} ${t.addr} ${t.w3w}`.toLowerCase().includes(q)) return false;
     if(activeChip==='found' && !found[t.n]) return false;
     if(activeChip && activeChip!=='found' && String(t.ch)!==activeChip) return false;
     return true;
