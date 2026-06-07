@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#1a2e1a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tree Hunt"/>
+<title>Tree Hunt</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bark: #1a2e1a;
+  --bark-mid: #2d4a2d;
+  --bark-light: #3d6b3d;
+  --leaf: #5a8a3a;
+  --leaf-light: #7ab55a;
+  --spring: #c8e6a0;
+  --cream: #f5f0e8;
+  --parchment: #ede6d3;
+  --ink: #1c1c18;
+  --ink-mid: #4a4a42;
+  --ink-light: #888878;
+  --found-bg: #e8f5d8;
+  --found-border: #5a8a3a;
+  --found-text: #2d4a1a;
+  --r: 12px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overscroll-behavior: none;
+}
+
+/* Header */
+.app-header {
+  background: var(--bark);
+  color: var(--cream);
+  padding: calc(var(--safe-top) + 14px) 20px 14px;
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 12px;
+}
+.app-icon { font-size: 24px; line-height: 1; }
+.app-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; letter-spacing: 0.01em; flex: 1; }
+.sync-btn {
+  background: rgba(255,255,255,0.12); border: none; color: var(--cream);
+  padding: 6px 12px; border-radius: 20px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+}
+.sync-btn:active { transform: scale(0.96); }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--leaf-light); }
+.sync-dot.syncing { animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* Stats bar */
+.stats-bar {
+  background: var(--bark-mid);
+  color: var(--cream);
+  display: flex; gap: 0;
+}
+.stat-item {
+  flex: 1; text-align: center; padding: 10px 4px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num { font-size: 20px; font-weight: 500; font-family: 'Playfair Display', serif; }
+.stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; margin-top: 1px; }
+.progress-wrap { background: var(--bark); height: 3px; }
+.progress-fill { height: 3px; background: var(--leaf-light); transition: width 0.6s ease; }
+
+/* Controls */
+.controls {
+  padding: 14px 16px 10px;
+  background: var(--parchment);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  display: flex; flex-direction: column; gap: 10px;
+  position: sticky; top: calc(var(--safe-top) + 50px); z-index: 40;
+}
+.search-wrap {
+  display: flex; align-items: center;
+  background: white;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 0 12px;
+}
+.search-wrap svg { flex-shrink: 0; opacity: 0.4; }
+.search-wrap input {
+  border: none; background: none; padding: 11px 10px; flex: 1;
+  font-size: 15px; font-family: 'DM Sans', sans-serif; color: var(--ink);
+  outline: none;
+}
+.filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.filter-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 400;
+  border: 1.5px solid rgba(0,0,0,0.15); background: white; color: var(--ink-mid);
+  cursor: pointer;
+}
+.chip.active { background: var(--bark); color: white; border-color: var(--bark); }
+.chip:active { transform: scale(0.96); }
+
+/* Tree list */
+.tree-list { padding: 12px 16px calc(var(--safe-bottom) + 80px); display: flex; flex-direction: column; gap: 8px; }
+.tree-card {
+  background: white;
+  border-radius: var(--r);
+  border: 1.5px solid rgba(0,0,0,0.07);
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.tree-card:active { transform: scale(0.985); }
+.tree-card.found {
+  background: var(--found-bg);
+  border-color: var(--found-border);
+}
+.check-ring {
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.18);
+  background: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.tree-card.found .check-ring {
+  background: var(--leaf);
+  border-color: var(--leaf);
+}
+.check-ring svg { opacity: 0; transition: opacity 0.2s; }
+.tree-card.found .check-ring svg { opacity: 1; }
+.tree-body { flex: 1; min-width: 0; }
+.tree-name {
+  font-size: 14px; font-weight: 500;
+  font-family: 'Playfair Display', serif; font-style: italic;
+  color: var(--ink); line-height: 1.3;
+}
+.tree-sub { font-size: 12px; color: var(--ink-light); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tree-found-date { font-size: 11px; color: var(--found-text); margin-top: 3px; font-weight: 500; }
+.tree-num { font-size: 11px; color: var(--ink-light); font-weight: 300; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: white;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+}
+.nav-btn {
+  flex: 1; padding: 10px 4px; border: none; background: none;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--ink-light); font-family: 'DM Sans', sans-serif;
+  font-size: 10px; cursor: pointer; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.nav-btn.active { color: var(--bark); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: white; width: 100%;
+  border-radius: 20px 20px 0 0;
+  padding: 8px 0 calc(var(--safe-bottom) + 24px);
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  max-height: 85vh; overflow-y: auto;
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: rgba(0,0,0,0.15); border-radius: 2px; margin: 0 auto 16px; }
+.modal-body { padding: 0 20px; }
+.modal-num { font-size: 12px; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-style: italic; line-height: 1.3; margin-bottom: 4px; }
+.modal-common { font-size: 14px; color: var(--ink-mid); margin-bottom: 20px; }
+.modal-rows { display: flex; flex-direction: column; gap: 0; border-top: 1px solid rgba(0,0,0,0.06); }
+.modal-row {
+  display: flex; padding: 13px 0; gap: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  align-items: flex-start;
+}
+.modal-row-lbl { font-size: 12px; color: var(--ink-light); text-transform: uppercase; letter-spacing: 0.06em; min-width: 72px; padding-top: 1px; }
+.modal-row-val { font-size: 14px; color: var(--ink); flex: 1; line-height: 1.5; }
+.modal-row-val em { font-style: italic; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-found {
+  flex: 1; padding: 14px; border-radius: 12px; border: none;
+  font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer;
+  background: var(--bark); color: white; transition: transform 0.1s;
+}
+.btn-found:active { transform: scale(0.97); }
+.btn-found.is-found { background: var(--found-bg); color: var(--found-text); border: 1.5px solid var(--found-border); }
+.btn-map {
+  padding: 14px 20px; border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.15); background: white;
+  font-size: 15px; font-family: 'DM Sans', sans-serif; cursor: pointer; color: var(--ink);
+}
+.btn-map:active { transform: scale(0.97); }
+
+/* Near me empty state */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--ink-light); }
+.empty-state svg { margin: 0 auto 12px; display: block; opacity: 0.3; }
+.empty-state p { font-size: 15px; line-height: 1.6; }
+
+/* Sync modal */
+.sync-panel { padding: 20px; }
+.sync-panel h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 8px; }
+.sync-panel p { font-size: 14px; color: var(--ink-mid); line-height: 1.6; margin-bottom: 16px; }
+.sync-code {
+  background: var(--parchment); border-radius: 8px; padding: 12px 16px;
+  font-family: monospace; font-size: 13px; word-break: break-all; margin-bottom: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+.sync-input {
+  width: 100%; padding: 12px; border: 1.5px solid rgba(0,0,0,0.15); border-radius: 10px;
+  font-family: monospace; font-size: 13px; margin-bottom: 12px; outline: none;
+}
+.sync-input:focus { border-color: var(--leaf); }
+.btn-sync-go { width: 100%; padding: 13px; background: var(--bark); color: white; border: none; border-radius: 10px; font-size: 15px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <span class="app-icon">🌳</span>
+  <span class="app-title">Tree Hunt</span>
+  <button class="sync-btn" id="sync-btn" onclick="openSync()">
+    <span class="sync-dot" id="sync-dot"></span>
+    <span id="sync-label">Sync</span>
+  </button>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num" id="s-found">0</div><div class="stat-lbl">Found</div></div>
+  <div class="stat-item"><div class="stat-num" id="s-left">1000</div><div class="stat-lbl">Left</div></div>
+  <div class="stat-item"><div class="stat-num" id="s-pct">0%</div><div class="stat-lbl">Progress</div></div>
+</div>
+<div class="progress-wrap"><div class="progress-fill" id="prog" style="width:0"></div></div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="search" id="search" placeholder="Name, town, species…" oninput="render()" autocomplete="off" autocorrect="off" spellcheck="false"/>
+  </div>
+  <div class="filter-row" id="filter-row">
+    <button class="chip active" data-ch="" onclick="setChip(this,'')">All</button>
+    <button class="chip" data-ch="nearby" onclick="setNearby(this)">📍 Near me</button>
+    <button class="chip" data-ch="found" onclick="setChip(this,'found')">✓ Found</button>
+    <button class="chip" data-ch="1" onclick="setChip(this,'1')">Ch.1 Scotland N</button>
+    <button class="chip" data-ch="2" onclick="setChip(this,'2')">Ch.2 Scotland E</button>
+    <button class="chip" data-ch="3" onclick="setChip(this,'3')">Ch.3 Scotland W</button>
+    <button class="chip" data-ch="4" onclick="setChip(this,'4')">Ch.4 Borders</button>
+    <button class="chip" data-ch="5" onclick="setChip(this,'5')">Ch.5 NW England</button>
+    <button class="chip" data-ch="6" onclick="setChip(this,'6')">Ch.6 Yorkshire</button>
+    <button class="chip" data-ch="7" onclick="setChip(this,'7')">Ch.7 Midlands</button>
+    <button class="chip" data-ch="8" onclick="setChip(this,'8')">Ch.8 East Anglia</button>
+    <button class="chip" data-ch="9" onclick="setChip(this,'9')">Ch.9 London</button>
+    <button class="chip" data-ch="10" onclick="setChip(this,'10')">Ch.10 South</button>
+  </div>
+</div>
+
+<div class="tree-list" id="tree-list"></div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="setView('list')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5"/><circle cx="3" cy="12" r="1.5"/><circle cx="3" cy="18" r="1.5"/></svg>
+    List
+  </button>
+  <button class="nav-btn" onclick="openMapAll()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg>
+    Map
+  </button>
+  <button class="nav-btn" onclick="setView('found-view')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    Found
+  </button>
+</nav>
+
+<!-- Tree detail modal -->
+<div class="modal-overlay" id="modal" onclick="maybeCloseModal(event)">
+  <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Sync modal -->
+<div class="modal-overlay" id="sync-modal" onclick="maybeCloseSyncModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="sync-panel" id="sync-panel"></div>
+  </div>
+</div>
+
+<script>
+const TREES = [
+  {n:1,ch:1,town:"Lerwick",name:"Zetland Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"26-32 Burgh Road, Lerwick, Shetland ZE1 0LB",w3w:"accusing.mascot.throat",lat:60.153851,lng:-1.152877},
+  {n:2,ch:1,town:"Lerwick",name:"Chestnut Foal",common:"Horse Chestnut",botanical:"Aesculus hippocastanum",addr:"Charlotte Street, Lerwick ZE1 0JL",w3w:"crackles.splint.focal",lat:60.154983,lng:-1.144641},
+  {n:3,ch:1,town:"Lerwick",name:"Bank Lane Elm",common:"Wych Elm",botanical:"Ulmus glabra",addr:"Bank Lane, off Commercial St, Lerwick ZE1 0DL",w3w:"darts.quite.stags",lat:60.153231,lng:-1.144099},
+  {n:4,ch:1,town:"Kirkwall",name:"The Big Tree",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Albert Street, Kirkwall KW15 1HJ",w3w:"throwaway.solar.debater",lat:58.982522,lng:-2.959563},
+  {n:5,ch:1,town:"Ullapool",name:"Village Hall Cherry",common:"Kanzan Cherry",botanical:"Prunus 'Kanzan'",addr:"Ullapool Village Hall, 4 Market Street, Ullapool IV26 2XE",w3w:"squeezed.interviewer.exporters",lat:57.897653,lng:-5.159638},
+  {n:6,ch:1,town:"Edderton",name:"Old Church Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Old Edderton Church, Tain IV19 1JU",w3w:"squirted.weds.autumn",lat:57.8289,lng:-4.157933},
+  {n:7,ch:1,town:"Fortrose",name:"Solid Beech",common:"Copper Beech",botanical:"Fagus sylvatica 'Purpurea'",addr:"Cathedral Square, Fortrose IV10 8TB",w3w:"flickers.devours.dove",lat:57.581029,lng:-4.131358},
+  {n:8,ch:1,town:"Dingwall",name:"Dingwall Weeping Ash",common:"Weeping Ash",botanical:"Fraxinus excelsior 'Pendula'",addr:"Joe Yates Court, Dingwall IV15 9HP",w3w:"deprives.tend.breathy",lat:57.594478,lng:-4.427511},
+  {n:9,ch:1,town:"Strathpeffer",name:"1550 Sweet Chestnut",common:"Sweet Chestnut",botanical:"Castanea sativa",addr:"Castle Leod, Strathpeffer IV14 9AA",w3w:"trendy.washable.hers",lat:57.598628,lng:-4.532835},
+  {n:10,ch:1,town:"Strathpeffer",name:"Pavilion Redwood",common:"Giant Redwood",botanical:"Sequoiadendron giganteum",addr:"The Square, Strathpeffer IV14 9DW",w3w:"drifter.proofread.commuting",lat:57.587282,lng:-4.537918},
+  {n:11,ch:1,town:"Portree",name:"Chimney Sweep's Puzzle",common:"Monkey Puzzle",botanical:"Araucaria araucana",addr:"2 Bosville Terrace, Portree IV51 9DG",w3w:"nibbles.preheated.textiles",lat:57.412988,lng:-6.190001},
+  {n:12,ch:1,town:"Plockton",name:"Plockton Palm",common:"Cabbage Palm",botanical:"Cordyline australis",addr:"The Plockton Hotel, 41 Harbour St, Plockton IV52 8TN",w3w:"pads.nail.fetching",lat:57.338441,lng:-5.651135},
+  {n:13,ch:1,town:"Beauly",name:"Consolation Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Beauly Priory, Beauly IV4 7DY",w3w:"retrain.alleyway.flukes",lat:57.48449,lng:-4.458609},
+  {n:14,ch:1,town:"Inverness",name:"St Stephen's Twins",common:"Voss's Laburnum",botanical:"Laburnum ×watereri 'Vossii'",addr:"Old High St Stephen's Church, Church St, Inverness IV1 1EY",w3w:"trades.shorts.chest",lat:57.4798,lng:-4.229267},
+  {n:16,ch:1,town:"Inverness",name:"Breach Pine",common:"Austrian Pine",botanical:"Pinus nigra",addr:"Inverness Castle, Inverness IV2 3EG",w3w:"dame.drama.brass",lat:57.476189,lng:-4.226158},
+  {n:17,ch:1,town:"Inverness",name:"Three Graces Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"1 Ness Bank, Inverness IV2 4SA",w3w:"bonds.puns.apply",lat:57.475164,lng:-4.226208},
+  {n:18,ch:1,town:"Inverness",name:"Urban Larch",common:"European Larch",botanical:"Larix decidua",addr:"Bishops Road, Inverness IV3 5SB",w3w:"stamp.list.visa",lat:57.472469,lng:-4.232977},
+  {n:19,ch:1,town:"Inverness",name:"Ness Island Fir",common:"Douglas Fir",botanical:"Pseudotsuga menziesii",addr:"Ness Islands, Great Glen Way, Inverness IV2 4RT",w3w:"surely.space.brave",lat:57.463333,lng:-4.231573},
+  {n:20,ch:1,town:"Inverness",name:"Grand Bught Redwood",common:"Giant Redwood",botanical:"Sequoiadendron giganteum",addr:"Inverness Leisure, Bught Lane, Inverness IV3 5SS",w3w:"dreams.create.join",lat:57.463279,lng:-4.238894},
+  {n:21,ch:1,town:"Inverness",name:"Porcelain Birch",common:"Himalayan Birch",botanical:"Betula utilis var. jacquemontii",addr:"Inverness Botanic Gardens, Bught Lane, Inverness IV3 5SS",w3w:"eating.quench.motor",lat:57.46274,lng:-4.240749},
+  {n:22,ch:1,town:"Aviemore",name:"Triple-Trunked Birch",common:"Silver Birch",botanical:"Betula pendula",addr:"Aviemore PH22 1PR",w3w:"thin.spillage.chilling",lat:57.186759,lng:-3.838486},
+  {n:23,ch:1,town:"Aviemore",name:"Cairngorm Beach Pine",common:"Scots Pine",botanical:"Pinus sylvestris",addr:"Glenmore, Aviemore PH22 1QU",w3w:"envisage.bunch.goals",lat:57.166626,lng:-3.70095},
+  {n:24,ch:1,town:"Tobermory",name:"Tobermory Tilleul",common:"Common Lime",botanical:"Tilia x europaea",addr:"Breadalbane Street, Tobermory, Isle of Mull PA75 6PE",w3w:"tracking.graph.burn",lat:56.623127,lng:-6.071397},
+  {n:25,ch:1,town:"Bridge of Orchy",name:"Rannoch Rowan",common:"Rowan",botanical:"Sorbus aucuparia",addr:"A82, Bridge of Orchy PA36 4AD",w3w:"motivator.washroom.speeches",lat:56.580948,lng:-4.753941},
+  {n:26,ch:1,town:"Inveraray",name:"Inveraray's Fyne Cherry",common:"Double Flowering Cherry",botanical:"Prunus avium 'Plena'",addr:"Front Street East, Inveraray PA32 8UZ",w3w:"supper.given.lifeguard",lat:56.231687,lng:-5.072977},
+  {n:27,ch:1,town:"Pitlochry",name:"Robertson Oak",common:"Sessile Oak",botanical:"Quercus petraea",addr:"Perth Rd, Pitlochry PH16 5LY",w3w:"unhappy.plausible.argue",lat:56.697836,lng:-3.722787},
+  {n:28,ch:1,town:"Fortingall",name:"The Fortingall Yew",common:"Yew",botanical:"Taxus baccata",addr:"2 Kirkton Cottages, Fortingall, Aberfeldy PH15 2LL",w3w:"pulps.large.spearing",lat:56.598251,lng:-4.050956},
+  {n:29,ch:1,town:"Dunkeld",name:"Parent Larch",common:"European Larch",botanical:"Larix decidua",addr:"Riverside, Dunkeld PH8 0AG",w3w:"gains.leafing.exclusive",lat:56.565289,lng:-3.591192},
+  {n:30,ch:1,town:"Dunkeld",name:"Cathedral Christmas Tree",common:"Caucasian Fir",botanical:"Abies nordmanniana",addr:"Dunkeld Cathedral, Cathedral St, Dunkeld PH8 0AW",w3w:"parading.planting.luggage",lat:56.564589,lng:-3.590164},
+  {n:31,ch:1,town:"Dunkeld",name:"The Dunkeld Larch",common:"Dunkeld Larch",botanical:"Larix × marschlinsii",addr:"Riverside, Dunkeld PH8 0AG",w3w:"trips.meanwhile.promoting",lat:56.563645,lng:-3.598732},
+  {n:32,ch:1,town:"Dunkeld",name:"Birnam Oak",common:"Sessile Oak",botanical:"Quercus petraea",addr:"Dunkeld PH8 0BL",w3w:"january.doctor.birdcage",lat:56.561274,lng:-3.575475},
+  {n:33,ch:1,town:"Dunkeld",name:"Birnam Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Dunkeld PH8 0BL",w3w:"surcharge.vine.tiles",lat:56.561435,lng:-3.57616},
+  {n:34,ch:1,town:"Dunkeld",name:"Birnam Walnut",common:"Walnut",botanical:"Juglans regia",addr:"Dunkeld PH8 0AF",w3w:"retina.crescendo.securing",lat:56.562055,lng:-3.585218},
+  {n:35,ch:1,town:"Dunkeld",name:"Niel Gow's Tree",common:"Sessile Oak",botanical:"Quercus petraea",addr:"Dunkeld PH8 0HX",w3w:"patching.hires.buckling",lat:56.563295,lng:-3.607545},
+  {n:36,ch:1,town:"Dunkeld",name:"Apprentice Fir",common:"Douglas Fir",botanical:"Pseudotsuga menziesii",addr:"Old Military Rd, Dunkeld PH8 0JR",w3w:"though.recline.overgrown",lat:56.557474,lng:-3.613959},
+  {n:37,ch:1,town:"Meikleour",name:"Meikleour First Tree",common:"Beech",botanical:"Fagus sylvatica",addr:"Meikleour PH2 6FB",w3w:"shepherds.bubbles.total",lat:56.530199,lng:-3.364754},
+  {n:38,ch:1,town:"Perth",name:"This Is Not Just A Walnut",common:"Walnut",botanical:"Juglans regia",addr:"Highland Gateway, Ruthvenfield Road, Perth PH1 3EE",w3w:"advancing.defected.dislodge",lat:56.419995,lng:-3.468262},
+  {n:39,ch:1,town:"Scone",name:"Pacific Pioneer",common:"Douglas Fir",botanical:"Pseudotsuga menziesii",addr:"Scone Palace, Perth PH2 6BD",w3w:"slips.blackbird.compiled",lat:56.422879,lng:-3.434353},
+  {n:40,ch:1,town:"Scone",name:"Exhibit A",common:"Sitka Spruce",botanical:"Picea sitchensis",addr:"Woollcombe Square, Scone, Perth PH2 6PN",w3w:"shifts.purchaser.appear",lat:56.425574,lng:-3.413959},
+  {n:41,ch:1,town:"Perth",name:"Taybank Willow",common:"White Willow",botanical:"Salix alba",addr:"Norrie-Miller Walk, Riverside, Perth PH2 7TR",w3w:"areas.social.lines",lat:56.395389,lng:-3.423855},
+  {n:42,ch:1,town:"Perth",name:"Greyfriars Maple",common:"Cappadocian Maple",botanical:"Acer cappadocicum",addr:"Greyfriars Burial Ground, Canal Street, Perth PH2 8PJ",w3w:"behave.survey.fled",lat:56.393394,lng:-3.427169},
+  {n:43,ch:1,town:"Perth",name:"Purple Pretender",common:"Copper Beech",botanical:"Fagus sylvatica 'Purpurea'",addr:"Perth PH2 8AN",w3w:"horn.deflection.dairy",lat:56.389109,lng:-3.429995},
+  {n:44,ch:1,town:"Crieff",name:"Eppie Callum's Oak",common:"Pedunculate Oak",botanical:"Quercus robur",addr:"2 Turretbank Rd, Crieff PH7 4LN",w3w:"clear.beanbag.stealthier",lat:56.377816,lng:-3.853241},
+  {n:45,ch:1,town:"Brig O' Turk",name:"Bicycle Tree",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Brig O' Turk Tearoom, Brig O'Turk, Callander FK17 8HT",w3w:"thickened.zoom.meal",lat:56.230662,lng:-4.365469},
+  {n:46,ch:1,town:"Aberfoyle",name:"Poker Tree",common:"Sessile Oak",botanical:"Quercus petraea",addr:"Baillie Nicol Jarvie Court, Lochard Road, Aberfoyle FK8 3SZ",w3w:"generated.loaders.credited",lat:56.178647,lng:-4.385392},
+  {n:47,ch:1,town:"Blair Drummond",name:"Retiring Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Kincardine in Menteith Church, Blair Drummond FK9 4UX",w3w:"tidy.grudging.decreased",lat:56.165225,lng:-4.064194},
+  {n:48,ch:1,town:"Stirling",name:"Serpent Tree",common:"Père David's Maple",botanical:"Acer davidii",addr:"University of Stirling, Stirling FK9 4LA",w3w:"payer.clipboard.refrained",lat:56.144203,lng:-3.920756},
+  {n:49,ch:1,town:"Stirling",name:"Wallace Oak",common:"Pedunculate Oak",botanical:"Quercus robur",addr:"Aithrey Castle, Hermitage Rd, Stirling FK9 4LA",w3w:"culminate.education.parts",lat:56.146548,lng:-3.91369},
+  {n:50,ch:1,town:"Stirling",name:"Stirling Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Beechwood Park, Stirling FK7 9AA",w3w:"branded.super.oldest",lat:56.105043,lng:-3.943276},
+  {n:51,ch:2,town:"Keith",name:"Keith Chestnut",common:"Horse Chestnut",botanical:"Aesculus hippocastanum",addr:"Bridge St, Keith AB55 5HJ",w3w:"smelter.broadens.fruity",lat:57.538392,lng:-2.948569},
+  {n:52,ch:2,town:"Aberdeen",name:"Auld Alliance Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Seaton Park, Don St, Old Aberdeen AB24 1XS",w3w:"shorts.sculpture.hurray",lat:57.170831,lng:-2.100981},
+  {n:53,ch:2,town:"Aberdeen",name:"Cruickshank Roble",common:"Roble",botanical:"Nothofagus obliqua",addr:"Cruickshank BG, St Machar Dr, Aberdeen AB24 3UU",w3w:"shower.shrimp.rival",lat:57.16854,lng:-2.105162},
+  {n:54,ch:2,town:"Aberdeen",name:"Split The Winds Tree",common:"Wych Elm",botanical:"Ulmus glabra",addr:"Split The Winds Church, Powis Place, Aberdeen AB25 3TT",w3w:"filed.appear.hours",lat:57.157651,lng:-2.109512},
+  {n:55,ch:2,town:"Aberdeen",name:"Bon Accord Sycamore",common:"Sycamore",botanical:"Acer pseudoplatanus",addr:"Union Terrace Gardens, Union Terrace, Aberdeen AB10 1NJ",w3w:"across.crew.dive",lat:57.147572,lng:-2.104042},
+  {n:56,ch:2,town:"Aberdeen",name:"Mither Kirk Elm",common:"Tabletop Elm",botanical:"Ulmus glabra 'Horizontalis'",addr:"St Nicholas Kirkyard, Union St, Aberdeen AB10 1JL",w3w:"vest.shed.fortunate",lat:57.146925,lng:-2.09917},
+  {n:57,ch:2,town:"Aberdeen",name:"Great Southern Beech",common:"Copper Beech",botanical:"Fagus sylvatica 'Purpurea'",addr:"Great Southern Rd, Bridge of Dee, Aberdeen AB12 5XA",w3w:"menu.backup.rides",lat:57.12283,lng:-2.116284},
+  {n:58,ch:2,town:"Aberdeen",name:"Duthie Beech",common:"Beech",botanical:"Fagus sylvatica",addr:"Duthie Park, Polmuir Road, Aberdeen AB11 7TH",w3w:"combining.kicks.placed",lat:57.129272,lng:-2.102302},
+  {n:59,ch:2,town:"Edzell",name:"Edzell Granny Pine",common:"Scots Pine",botanical:"Pinus sylvestris",addr:"High Street, Edzell, Brechin DD9 7TF",w3w:"overheard.bounty.ranged",lat:56.80556,lng:-2.653886},
+  {n:60,ch:2,town:"Carnoustie",name:"The Dibble Tree",common:"Cricket Bat Willow",botanical:"Salix alba 'Caerulea'",addr:"Ferrier Street, Carnoustie DD7 7HT",w3w:"stored.producers.websites",lat:56.500229,lng:-2.713591},
+  {n:61,ch:2,town:"Dundee",name:"Burry Man Tree",common:"Monkey Puzzle",botanical:"Araucaria araucana",addr:"Camperdown Park, Dundee DD2 4TD",w3w:"mess.talked.heartened",lat:56.484759,lng:-3.041691},
+  {n:62,ch:2,town:"Dundee",name:"The Camperdown Elm",common:"Camperdown Elm",botanical:"Ulmus glabra 'Camperdownii'",addr:"Camperdown Park, Dundee DD2 4TD",w3w:"sports.taxed.sideboard",lat:56.482441,lng:-3.042033},
+  {n:63,ch:2,town:"Dundee",name:"Debatable Plane",common:"London Plane",botanical:"Platanus x hispanica",addr:"West Bell St, Dundee DD1 1HG",w3w:"cares.future.loads",lat:56.462524,lng:-2.976724},
+  {n:64,ch:2,town:"Dundee",name:"Howff Wraith",common:"Camperdown Elm",botanical:"Ulmus glabra 'Camperdownii'",addr:"The Howff, 4 Meadowside, Dundee DD1 1AA",w3w:"motion.cage.offer",lat:56.461042,lng:-2.972817},
+  {n:65,ch:2,town:"Dundee",name:"Nethergate Elm",common:"Tabletop Elm",botanical:"Ulmus glabra 'Horizontalis'",addr:"St Andrew's Cathedral, 150 Nethergate, Dundee DD1 4EA",w3w:"dearest.copy.engineers",lat:56.457619,lng:-2.974898},
+  {n:66,ch:2,town:"Dundee",name:"Tree of Liberty",common:"Ash",botanical:"Fraxinus excelsior",addr:"Duncan of Jordanstone College of Art, Perth Road, Dundee DD1 4HT",w3w:"severe.kettles.kebab",lat:56.456757,lng:-2.98368},
+  {n:67,ch:2,town:"Dundee",name:"Roseangle Plane",common:"Oriental Plane",botanical:"Platanus orientalis",addr:"20 Roseangle, Dundee DD1 4LR",w3w:"january.stag.unlimited",lat:56.45522,lng:-2.983582},
+  {n:68,ch:2,town:"Dundee",name:"Botanical Bee-Bee",common:"Bee Bee Tree",botanical:"Tetradium daniellii",addr:"Dundee Botanical Garden, Riverside Drive, Dundee DD2 1QH",w3w:"scavenger.debating.army",lat:56.45549,lng:-3.023004},
+  {n:69,ch:2,town:"Newport on Tay",name:"Balmerino Chestnut",common:"Sweet Chestnut",botanical:"Castanea sativa",addr:"Balmerino Abbey, Balmerino Village, Newport-on-Tay DD6 8SB",w3w:"mural.coasted.contexts",lat:56.409969,lng:-3.040911},
+  {n:70,ch:2,town:"Leuchars",name:"Fife's Oldest Yew",common:"Yew",botanical:"Taxus baccata",addr:"St Athernase Church, School Hill, Leuchars KY16 0HB",w3w:"bibs.sober.officials",lat:56.381697,lng:-2.883455},
+  {n:71,ch:2,town:"St Andrews",name:"Queen Mary's Thorn",common:"Hawthorn",botanical:"Crataegus monogyna",addr:"St Mary's College, South St, St Andrews KY16 9JP",w3w:"metals.brick.firepower",lat:56.338953,lng:-2.794466},
+  {n:72,ch:2,town:"St Andrews",name:"St Mary's Oak",common:"Holm Oak",botanical:"Quercus ilex",addr:"St Mary's College, South St, St Andrews KY16 9JP",w3w:"kickbacks.oxidation.spooned",lat:56.339087,lng:-2.794173},
+  {n:73,ch:2,town:"Dunipace",name:"The King Tree",common:"Sweet Chestnut",botanical:"Castanea sativa",addr:"Chestnut Crescent, Dunipace, Denny FK6 6LF",w3w:"truckload.clauses.delays",lat:56.026129,lng:-3.919536},
+  {n:74,ch:2,town:"South Queensferry",name:"Forth Bridge Yew",common:"Yew",botanical:"Taxus baccata",addr:"Hawes Inn, 7 Newhalls Rd, South Queensferry EH30 9TA",w3w:"learn.finders.named",lat:55.990338,lng:-3.384332},
+  {n:75,ch:2,town:"Edinburgh",name:"Roman Lime",common:"Common Lime",botanical:"Tilia x europaea",addr:"Cramond Kirk, Cramond Glebe Rd, Cramond, Edinburgh EH4 6NS",w3w:"drive.open.eagle",lat:55.978237,lng:-3.29931},
+  {n:76,ch:2,town:"Edinburgh",name:"Sublime Pine",common:"Scots Pine",botanical:"Pinus sylvestris",addr:"Silverknowes Beach, Marine Drive, Edinburgh EH4 5EP",w3w:"weds.elaborate.crib",lat:55.979692,lng:-3.267482},
+  {n:77,ch:2,town:"Edinburgh",name:"Palm House Paperbark",common:"Paperbark Maple",botanical:"Acer griseum",addr:"Royal Botanic Gardens, Edinburgh EH3 5LR",w3w:"pitch.lease.pest",lat:55.96681,lng:-3.208888},
+  {n:78,ch:2,town:"Edinburgh",name:"Scarce Superba",common:"Blandford Elm",botanical:"Ulmus glabra 'Superba'",addr:"Links Gardens, Leith, Edinburgh EH6 7EB",w3w:"motion.bits.duke",lat:55.969343,lng:-3.165148},
+  {n:79,ch:2,town:"Edinburgh",name:"Royal Elm",common:"Wentworth Elm",botanical:"Ulmus × hollandica 'Wentworthii Pendula'",addr:"Palace of Holyroodhouse, Canongate, Edinburgh EH8 8DX",w3w:"silks.calls.cones",lat:55.952094,lng:-3.170592},
+  {n:80,ch:2,town:"Edinburgh",name:"Hidden Tulip Tree",common:"Tulip Tree",botanical:"Liriodendron tulipifera",addr:"Dunbar's Close Garden, Canongate, Edinburgh EH8 8BW",w3w:"builds.system.waddled",lat:55.951959,lng:-3.178781},
+  {n:81,ch:2,town:"Edinburgh",name:"Reminder Redwoods",common:"Giant Redwood",botanical:"Sequoiadendron giganteum",addr:"2-9 Greenpark, Edinburgh EH17 7TA",w3w:"rope.sang.jokes",lat:55.914551,lng:-3.147156},
+  {n:82,ch:2,town:"Edinburgh",name:"Braidburn Elm",common:"Wheatley Elm",botanical:"Ulmus minor 'Sarniensis'",addr:"Comiston Road, Edinburgh EH10 6HD",w3w:"stacks.minute.ruler",lat:55.912961,lng:-3.213746},
+  {n:83,ch:2,town:"Edinburgh",name:"Sixpenny Tree",common:"Small-leaved Lime",botanical:"Tilia cordata",addr:"Colinton Road, Edinburgh EH13 0LB",w3w:"clubs.shack.extend",lat:55.908487,lng:-3.251997},
+  {n:84,ch:2,town:"Edinburgh",name:"Robert Louis Stevenson's Yew",common:"Yew",botanical:"Taxus baccata",addr:"Colinton Parish Church, Dell Road, Edinburgh EH13 0JR",w3w:"cakes.latter.elder",lat:55.908891,lng:-3.255557},
+  {n:85,ch:2,town:"Edinburgh",name:"Handsome Magyar",common:"Hungarian Oak",botanical:"Quercus frainetto",addr:"Heriot-Watt University, Riccarton Campus, Edinburgh EH14 4AS",w3w:"rapid.memory.length",lat:55.909376,lng:-3.319934},
+  {n:86,ch:2,town:"Edinburgh",name:"Riccarton Cedar",common:"Western Red Cedar",botanical:"Thuja plicata",addr:"Heriot-Watt University, Riccarton Campus, Edinburgh EH14 4AS",w3w:"boot.gates.lazy",lat:55.908676,lng:-3.323157},
+  {n:87,ch:2,town:"Edinburgh",name:"Blacksmith's Tree",common:"Copper Beech",botanical:"Fagus sylvatica 'Purpurea'",addr:"213 St John's Rd, Corstorphine, Edinburgh EH12 7UU",w3w:"closes.pest.dangerously",lat:55.943146,lng:-3.286585},
+  {n:88,ch:2,town:"Edinburgh",name:"Corstorphine's Plane",common:"Corstorphine Plane",botanical:"Acer pseudoplatanus 'Corstorphinense'",addr:"Corstorphine old kirk, 2a Corstorphine High St, Edinburgh EH12 7ST",w3w:"merit.fresh.factor",lat:55.941098,lng:-3.282201},
+  {n:89,ch:2,town:"Edinburgh",name:"Modern Art Chestnut",common:"Sweet Chestnut",botanical:"Castanea sativa",addr:"National Gallery of Modern Art, Belford Road, Edinburgh EH4 3DR",w3w:"chew.chew.views",lat:55.951205,lng:-3.227336},
+  {n:90,ch:2,town:"Edinburgh",name:"Comely Bank Plane",common:"London Plane",botanical:"Platanus x hispanica",addr:"6-8 Comely Bank Rd, Stockbridge, Edinburgh EH4 1HG",w3w:"oldest.towers.will",lat:55.959425,lng:-3.215832},
+  {n:91,ch:2,town:"Edinburgh",name:"The Contortionist",common:"Camperdown Elm",botanical:"Ulmus glabra 'Camperdownii'",addr:"The Parish Church of St Cuthbert, 5 Lothian Road, Edinburgh EH1 2EP",w3w:"misty.tone.goat",lat:55.94948,lng:-3.204648},
+  {n:92,ch:2,town:"Edinburgh",name:"Ramsay Tree",common:"Wheatley Elm",botanical:"Ulmus minor 'Sarniensis'",addr:"Princes Street, Edinburgh EH2 2ER",w3w:"tapes.horns.skills",lat:55.951717,lng:-3.197519},
+  {n:93,ch:2,town:"Edinburgh",name:"Waverley Ash",common:"Weeping Ash",botanical:"Fraxinus excelsior 'Pendula'",addr:"East Princes Street Gardens, Edinburgh EH2 2EJ",w3w:"tribes.truly.drip",lat:55.951555,lng:-3.194485},
+  {n:94,ch:2,town:"Edinburgh",name:"Jawbone Walk Cherry",common:"Kanzan Cherry",botanical:"Prunus 'Kanzan'",addr:"The Pavilion Café, Melville Drive, Edinburgh EH9 1JZ",w3w:"energetic.event.makes",lat:55.940775,lng:-3.194485},
+  {n:95,ch:2,town:"Edinburgh",name:"Meadows Apogee",common:"Wheatley Elm",botanical:"Ulmus minor 'Sarniensis'",addr:"11-2 Meadow Pl, Edinburgh EH9 1JZ",w3w:"decks.haven.spray",lat:55.940182,lng:-3.194388},
+  {n:96,ch:2,town:"Edinburgh",name:"Umbrella Elm",common:"Spaeth's Field Elm",botanical:"Ulmus minor 'Umbraculifera Gracilis'",addr:"Alvanley Terrace, Edinburgh EH9 1DU",w3w:"rope.bright.neck",lat:55.937594,lng:-3.203251},
+  {n:97,ch:2,town:"Edinburgh",name:"VE Day Cedar",common:"Blue Atlas Cedar",botanical:"Cedrus atlantica 'Glauca'",addr:"Newbattle Terrace, Edinburgh EH10 4SF",w3w:"guides.decide.hurray",lat:55.929428,lng:-3.195737},
+  {n:98,ch:2,town:"Edinburgh",name:"Chandelier Pine",common:"Bhutan Pine",botanical:"Pinus wallichiana",addr:"Newbattle Terrace, Edinburgh EH10 4SF",w3w:"ripe.slap.rewarding",lat:55.930156,lng:-3.198964},
+  {n:99,ch:3,town:"Dumbarton",name:"Senior Field Maple",common:"Field Maple",botanical:"Acer campestre",addr:"Strathleven House, Vale Of Leven Industrial Estate, Dumbarton G82 3PD",w3w:"equipment.spider.handfuls",lat:55.969289,lng:-4.570337},
+];
+
+const TOTAL = 1000;
+let found = {};
+let activeChip = '';
+let userLat = null, userLng = null;
+let activeModal = null;
+const STORAGE_KEY = 'treehunt_found_v1';
+
+// Load from localStorage
+function loadFound() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if(s) found = JSON.parse(s); } catch(e){}
+}
+function saveFound() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(found)); } catch(e){}
+}
+loadFound();
+
+// Haversine distance in km
+function dist(lat1,lng1,lat2,lng2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function setChip(el, val) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  activeChip = val;
+  render();
+}
+
+function setNearby(el) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  activeChip = 'nearby';
+  if(!userLat) {
+    navigator.geolocation.getCurrentPosition(
+      p => { userLat=p.coords.latitude; userLng=p.coords.longitude; render(); },
+      () => { alert('Could not get your location. Please allow location access.'); }
+    );
+  } else { render(); }
+}
+
+function setView(v) {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if(v==='found-view') {
+    const foundChip = document.querySelector('[data-ch="found"]');
+    setChip(foundChip,'found');
+  } else if(v==='list') {
+    const allChip = document.querySelector('[data-ch=""]');
+    setChip(allChip,'');
+  }
+}
+
+function openMapAll() {
+  window.open('https://www.google.com/maps/d/u/0/viewer?mid=1uwmaal827YpPX4UqXdbjUogzTbcGU8U','_blank');
+}
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  let trees = TREES.filter(t => {
+    if(q && !`${t.name} ${t.town} ${t.common} ${t.botanical}`.toLowerCase().includes(q)) return false;
+    if(activeChip==='found' && !found[t.n]) return false;
+    if(activeChip==='nearby') {
+      if(!userLat) return false;
+      t._dist = dist(userLat,userLng,t.lat,t.lng);
+      return t._dist < 80;
+    }
+    if(activeChip && activeChip!=='found' && activeChip!=='nearby' && String(t.ch)!==activeChip) return false;
+    return true;
+  });
+  if(activeChip==='nearby') trees.sort((a,b)=>a._dist-b._dist);
+
+  const foundCount = Object.keys(found).length;
+  document.getElementById('s-found').textContent = foundCount;
+  document.getElementById('s-left').textContent = TOTAL - foundCount;
+  document.getElementById('s-pct').textContent = Math.round(foundCount/TOTAL*100)+'%';
+  document.getElementById('prog').style.width = (foundCount/TOTAL*100)+'%';
+
+  const list = document.getElementById('tree-list');
+  if(!trees.length) {
+    list.innerHTML = activeChip==='nearby' && !userLat
+      ? `<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg><p>Tap to allow location access<br/>and see trees near you.</p></div>`
+      : `<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>No trees match your search.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = trees.map(t => {
+    const isF = !!found[t.n];
+    const distTxt = (activeChip==='nearby'&&t._dist!==undefined) ? `${t._dist.toFixed(1)} km · ` : '';
+    const dateTxt = isF && found[t.n].date ? `<div class="tree-found-date">✓ Found ${found[t.n].date}</div>` : '';
+    return `<div class="tree-card${isF?' found':''}" onclick="openTree(${t.n})">
+      <button class="check-ring" onclick="event.stopPropagation();toggle(${t.n})" aria-label="${isF?'Unmark':'Mark as found'}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <div class="tree-body">
+        <div class="tree-name">${t.name}</div>
+        <div class="tree-sub">${distTxt}#${t.n} · ${t.town} · ${t.common}</div>
+        ${dateTxt}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(n) {
+  if(found[n]) { delete found[n]; }
+  else { const d=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); found[n]={date:d}; }
+  saveFound();
+  render();
+  if(activeModal===n) openTree(n); // refresh modal
+}
+
+function openTree(n) {
+  activeModal = n;
+  const t = TREES.find(x=>x.n===n);
+  if(!t) return;
+  const isF = !!found[n];
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${t.lat},${t.lng}`;
+  const w3wUrl = `https://what3words.com/${t.w3w}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-num">Tree #${t.n} · Chapter ${t.ch}</div>
+    <div class="modal-title">${t.name}</div>
+    <div class="modal-common">${t.common} · <em>${t.botanical}</em></div>
+    <div class="modal-rows">
+      <div class="modal-row"><span class="modal-row-lbl">Town</span><span class="modal-row-val">${t.town}</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">Address</span><span class="modal-row-val">${t.addr}</span></div>
+      <div class="modal-row"><span class="modal-row-lbl">What3Words</span><span class="modal-row-val"><a href="${w3wUrl}" style="color:var(--leaf);text-decoration:none">///&#8202;${t.w3w}</a></span></div>
+      ${isF&&found[n].date?`<div class="modal-row"><span class="modal-row-lbl">Found</span><span class="modal-row-val" style="color:var(--found-text)">${found[n].date}</span></div>`:''}
+    </div>
+    <div class="modal-actions">
+      <button class="btn-found${isF?' is-found':''}" onclick="toggle(${n})">${isF?'✓ Mark not found':'Mark as found ✓'}</button>
+      <a class="btn-map" href="${mapsUrl}">🗺 Map</a>
+    </div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function maybeCloseModal(e) {
+  if(e.target===document.getElementById('modal')) { document.getElementById('modal').classList.remove('open'); activeModal=null; }
+}
+
+// Sync panel — export/import JSON string for cross-device
+function openSync() {
+  const data = JSON.stringify(found);
+  const short = data.length < 20 ? 'No trees found yet' : `${Object.keys(found).length} trees found`;
+  document.getElementById('sync-panel').innerHTML = `
+    <h2>Sync found trees</h2>
+    <p>Copy your progress code and paste it on another device to sync your found trees.</p>
+    <div style="font-size:13px;color:var(--ink-light);margin-bottom:6px;font-weight:500">YOUR PROGRESS (${short})</div>
+    <div class="sync-code" id="sync-code">${data}</div>
+    <button style="width:100%;padding:11px;margin-bottom:16px;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;background:white;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif" onclick="copySyncCode()">Copy to clipboard</button>
+    <div style="font-size:13px;color:var(--ink-light);margin-bottom:6px;font-weight:500">PASTE PROGRESS FROM ANOTHER DEVICE</div>
+    <textarea class="sync-input" id="sync-input" rows="4" placeholder='Paste code here…'></textarea>
+    <button class="btn-sync-go" onclick="importSync()">Import progress</button>
+  `;
+  document.getElementById('sync-modal').classList.add('open');
+}
+
+function copySyncCode() {
+  const text = document.getElementById('sync-code').textContent;
+  navigator.clipboard.writeText(text).then(()=>{alert('Copied! Paste this on your other device.');}).catch(()=>{
+    document.getElementById('sync-code').select?.();
+  });
+}
+
+function importSync() {
+  try {
+    const raw = document.getElementById('sync-input').value.trim();
+    const imported = JSON.parse(raw);
+    found = {...found, ...imported};
+    saveFound(); render();
+    document.getElementById('sync-modal').classList.remove('open');
+    alert(`Imported! You now have ${Object.keys(found).length} trees found.`);
+  } catch(e) { alert('Invalid code — please paste the full progress code.'); }
+}
+
+function maybeCloseSyncModal(e) {
+  if(e.target===document.getElementById('sync-modal')) document.getElementById('sync-modal').classList.remove('open');
+}
+
+// Service worker registration
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+render();
+</script>
+</body>
+</html>
