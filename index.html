@@ -154,8 +154,18 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .sync-input { width: 100%; padding: 12px; border: 1.5px solid rgba(0,0,0,0.15); border-radius: 10px; font-family: monospace; font-size: 13px; margin-bottom: 12px; outline: none; }
 .sync-input:focus { border-color: var(--leaf); }
 .btn-sync { width: 100%; padding: 13px; background: var(--bark); color: white; border: none; border-radius: 10px; font-size: 15px; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-bottom: 10px; }
+
+#map-view { padding-top: env(safe-area-inset-top, 0px); }
+.leaflet-container { font-family: 'DM Sans', sans-serif; }
+.map-popup { min-width: 180px; }
+.map-popup-name { font-family: 'Playfair Display', serif; font-size: 14px; font-style: italic; font-weight: 500; margin-bottom: 4px; }
+.map-popup-sub { font-size: 12px; color: #888878; margin-bottom: 10px; }
+.map-popup-btn { display: inline-block; padding: 7px 14px; background: #1a2e1a; color: white; border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; width: 100%; text-align: center; }
+.map-popup-btn.found { background: #e8f5d8; color: #2d4a1a; border: 1.5px solid #5a8a3a; }
+
 .btn-sync-sec { width: 100%; padding: 13px; background: white; color: var(--ink); border: 1.5px solid rgba(0,0,0,0.15); border-radius: 10px; font-size: 15px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
 
@@ -199,11 +209,20 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
     Found
   </button>
-  <button class="nav-btn" onclick="window.open('https://www.google.com/maps/d/u/0/viewer?mid=1uwmaal827YpPX4UqXdbjUogzTbcGU8U','_blank')">
+  <button class="nav-btn" id="nav-map" onclick="setView('map',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z"/><path d="M9 4v13M15 7v13"/></svg>
     Map
   </button>
 </nav>
+
+
+<div id="map-view" style="display:none;position:fixed;top:0;left:0;right:0;bottom:60px;z-index:10;">
+  <div id="leaflet-map" style="width:100%;height:100%;"></div>
+  <div id="map-legend" style="position:absolute;bottom:16px;left:16px;z-index:1000;background:white;border-radius:10px;padding:10px 14px;font-size:12px;font-family:'DM Sans',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="width:12px;height:12px;background:#5a8a3a;border-radius:50%;display:inline-block;border:2px solid #2d4a1a;flex-shrink:0"></span>Found</div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;background:#888878;border-radius:50%;display:inline-block;border:2px solid #4a4a42;flex-shrink:0"></span>Not yet found</div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modal" onclick="maybeClose('modal',event)">
   <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-body" id="modal-body"></div></div>
@@ -213,6 +232,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
   <div class="modal-sheet"><div class="modal-handle"></div><div class="sync-panel" id="sync-panel"></div></div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const TREES = [
   {n:1,ch:1,town:'Lerwick',name:'Zetland Sycamore',common:'Sycamore',botanical:'Acer pseudoplatanus',addr:'26-32 Burgh Road, Lerwick, Shetland ZE1 0LB',w3w:'accusing.mascot.throat',lat:60.153851,lng:-1.152877},
@@ -1263,12 +1283,22 @@ function setView(v, btn) {
     const fc = document.querySelector('[data-val="found"]');
     if(fc){fc.classList.add('active');activeChip='found';}
     render();
+  } else if(v==='map') {
+    document.getElementById('tree-list').style.display = 'none';
+    document.getElementById('map-view').style.display = 'block';
+    document.querySelector('.controls').style.display = 'none';
+    setTimeout(()=>{ initMap(); if(leafletMap) leafletMap.invalidateSize(); }, 50);
+    return;
   } else {
     document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
     const ac = document.querySelector('[data-val=""]');
     if(ac){ac.classList.add('active');activeChip='';}
     render();
   }
+  // leaving map view
+  document.getElementById('map-view').style.display = 'none';
+  document.getElementById('tree-list').style.display = 'flex';
+  document.querySelector('.controls').style.display = 'flex';
 }
 
 function render() {
@@ -1388,6 +1418,75 @@ function importSync() {
     document.getElementById('sync-modal').classList.remove('open');
     alert(`Done! Merged to ${Object.keys(found).length} trees found (was ${before}).`);
   } catch(e) { alert('Invalid code — please paste the full progress code.'); }
+}
+
+
+let leafletMap = null;
+let markers = {};
+
+function initMap() {
+  if(leafletMap) { refreshMarkers(); return; }
+  leafletMap = L.map('leaflet-map', {zoomControl: true}).setView([54.5, -3.5], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(leafletMap);
+
+  TREES.forEach(t => {
+    if(!t.lat || !t.lng) return;
+    const isF = !!found[t.n];
+    const marker = L.circleMarker([t.lat, t.lng], markerStyle(isF))
+      .addTo(leafletMap)
+      .bindPopup(() => makePopup(t.n), {maxWidth: 240, className: 'tree-popup'});
+    markers[t.n] = marker;
+  });
+}
+
+function markerStyle(isFound) {
+  return {
+    radius: 7,
+    fillColor: isFound ? '#5a8a3a' : '#888878',
+    color: isFound ? '#2d4a1a' : '#4a4a42',
+    weight: 2,
+    opacity: 1,
+    fillOpacity: isFound ? 0.95 : 0.6
+  };
+}
+
+function makePopup(n) {
+  const t = TREES.find(x=>x.n===n);
+  const isF = !!found[n];
+  const div = document.createElement('div');
+  div.className = 'map-popup';
+  div.innerHTML = `
+    <div class="map-popup-name">${t.name}</div>
+    <div class="map-popup-sub">#${t.n} · ${t.town} · ${t.common}</div>
+    <button class="map-popup-btn${isF?' found':''}" onclick="toggleFromMap(${n})">${isF?'✓ Found — tap to unmark':'Mark as found ✓'}</button>
+    <div style="text-align:center;margin-top:6px"><a href="https://what3words.com/${t.w3w}" style="font-size:11px;color:#5a8a3a;text-decoration:none">///&#8202;${t.w3w}</a></div>
+  `;
+  return div;
+}
+
+function toggleFromMap(n) {
+  toggle(n);
+  // refresh this marker style
+  if(markers[n]) {
+    markers[n].setStyle(markerStyle(!!found[n]));
+    // reopen popup to refresh button
+    markers[n].closePopup();
+    setTimeout(() => markers[n].openPopup(), 50);
+  }
+}
+
+function refreshMarkers() {
+  Object.entries(markers).forEach(([n, marker]) => {
+    marker.setStyle(markerStyle(!!found[parseInt(n)]));
+  });
+}
+
+function locateOnMap() {
+  if(!leafletMap) return;
+  leafletMap.locate({setView: true, maxZoom: 12});
 }
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
